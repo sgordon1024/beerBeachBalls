@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BEER BEACH BALLS — Justin's Bachelor Party</title>
+<meta name="description" content="Justin's Bachelor Party. Wilmington, NC. 80s Beach. Good Luck, Have Fun, Don't Die.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Monoton&family=Righteous&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏖️</text></svg>">
+<style>
+  :root {
+    --pink: #ff2d95;
+    --cyan: #00e5ff;
+    --orange: #ff9e00;
+    --yellow: #ffe600;
+    --purple: #1a0533;
+    --deep: #0d021f;
+    --card: rgba(255, 255, 255, 0.06);
+    --border: rgba(0, 229, 255, 0.35);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 70px; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--deep);
+    color: #f0eaff;
+    overflow-x: hidden;
+  }
+
+  /* ---------- NAV ---------- */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(13, 2, 31, 0.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.6rem 1rem;
+  }
+  nav .logo { font-family: 'Righteous', cursive; color: var(--cyan); font-size: 1.05rem; text-decoration: none; white-space: nowrap; }
+  nav .links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: flex-end; }
+  nav .links a { color: #f0eaff; text-decoration: none; font-size: 0.85rem; font-weight: 600; opacity: 0.85; }
+  nav .links a:hover { color: var(--pink); opacity: 1; }
+  @media (max-width: 700px) {
+    nav .links a:nth-child(n+5) { display: none; } /* keep nav tidy on phones */
+  }
+
+  /* ---------- HERO ---------- */
+  header {
+    min-height: 100svh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; position: relative; padding: 5rem 1rem 3rem;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 62%, rgba(255, 45, 149, 0.35), transparent 70%),
+      linear-gradient(180deg, var(--deep) 0%, var(--purple) 55%, #3d0a5e 75%, #ff2d95 140%);
+  }
+  /* synthwave sun */
+  .sun {
+    width: min(46vw, 230px); height: min(46vw, 230px);
+    border-radius: 50%;
+    background: linear-gradient(180deg, var(--yellow), var(--orange) 55%, var(--pink));
+    box-shadow: 0 0 80px rgba(255, 158, 0, 0.55);
+    position: relative; margin-bottom: -3rem;
+    -webkit-mask: linear-gradient(#000 0 62%, transparent 62% 66%, #000 66% 74%, transparent 74% 77%, #000 77% 84%, transparent 84% 86%, #000 86% 100%);
+            mask: linear-gradient(#000 0 62%, transparent 62% 66%, #000 66% 74%, transparent 74% 77%, #000 77% 84%, transparent 84% 86%, #000 86% 100%);
+  }
+  h1 {
+    font-family: 'Monoton', cursive;
+    font-weight: 400;
+    font-size: clamp(2rem, 9vw, 5.2rem);
+    line-height: 1.15;
+    color: var(--cyan);
+    text-shadow: 0 0 12px rgba(0, 229, 255, 0.8), 0 0 45px rgba(0, 229, 255, 0.45), 4px 4px 0 var(--pink);
+    margin: 1rem 0 0.4rem;
+  }
+  .subtitle {
+    font-family: 'Righteous', cursive;
+    font-size: clamp(1.1rem, 4vw, 1.8rem);
+    color: var(--yellow);
+    text-shadow: 0 0 18px rgba(255, 230, 0, 0.6);
+  }
+  .motto {
+    margin-top: 0.8rem; font-size: clamp(0.95rem, 3vw, 1.2rem);
+    letter-spacing: 0.18em; text-transform: uppercase; color: #ffb3d9; font-weight: 600;
+  }
+  .hero-meta { margin-top: 1.6rem; font-size: 1.05rem; color: #cfd8ff; }
+  .hero-meta strong { color: #fff; }
+
+  /* countdown */
+  .countdown { display: flex; gap: 0.7rem; margin-top: 1.6rem; flex-wrap: wrap; justify-content: center; }
+  .count-box {
+    background: rgba(13, 2, 31, 0.65); border: 1px solid var(--border); border-radius: 12px;
+    padding: 0.7rem 0.9rem; min-width: 74px;
+  }
+  .count-box .num { font-family: 'Righteous', cursive; font-size: 1.9rem; color: var(--cyan); }
+  .count-box .label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: #b8a8d9; }
+
+  .scroll-hint { margin-top: 2.2rem; font-size: 1.6rem; animation: bob 1.6s ease-in-out infinite; }
+  @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(9px); } }
+
+  /* grid floor */
+  .grid-floor {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 18vh; overflow: hidden; pointer-events: none;
+    -webkit-mask: linear-gradient(transparent, #000 40%); mask: linear-gradient(transparent, #000 40%);
+  }
+  .grid-floor::before {
+    content: ''; position: absolute; inset: -100% -50%;
+    background:
+      repeating-linear-gradient(90deg, rgba(0,229,255,0.35) 0 2px, transparent 2px 80px),
+      repeating-linear-gradient(0deg, rgba(0,229,255,0.35) 0 2px, transparent 2px 40px);
+    transform: perspective(200px) rotateX(60deg);
+  }
+
+  /* ---------- SECTIONS ---------- */
+  main { max-width: 1000px; margin: 0 auto; padding: 0 1rem; }
+  section { padding: 3.5rem 0 1rem; }
+  h2 {
+    font-family: 'Righteous', cursive;
+    font-size: clamp(1.6rem, 5.5vw, 2.4rem);
+    color: var(--pink);
+    text-shadow: 0 0 16px rgba(255, 45, 149, 0.55);
+    margin-bottom: 0.4rem;
+  }
+  .kicker { color: var(--cyan); text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.75rem; font-weight: 800; }
+  .blurb { color: #c9bde6; margin: 0.6rem 0 1.4rem; max-width: 65ch; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 1.2rem 1.3rem; margin-bottom: 1rem;
+  }
+  .card h3 { font-family: 'Righteous', cursive; color: var(--yellow); margin-bottom: 0.5rem; font-size: 1.15rem; }
+  .card p, .card li { color: #ded4f2; font-size: 0.95rem; line-height: 1.55; }
+  .card ul { padding-left: 1.2rem; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 1rem; }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+
+  .big-fact { font-family: 'Righteous', cursive; font-size: 1.3rem; color: #fff; }
+  .placeholder {
+    background: rgba(255, 230, 0, 0.12); border: 1px dashed var(--yellow);
+    border-radius: 8px; padding: 0.15rem 0.5rem; color: var(--yellow); font-weight: 600;
+  }
+  a.btn, button.btn {
+    display: inline-block; margin-top: 0.7rem; padding: 0.6rem 1.1rem; border-radius: 999px;
+    background: linear-gradient(90deg, var(--pink), var(--orange));
+    color: #fff; font-weight: 800; text-decoration: none; border: none; font-size: 0.9rem; cursor: pointer;
+  }
+  a.btn:active, button.btn:active { transform: scale(0.97); }
+
+  /* schedule */
+  .day { border-left: 3px solid var(--cyan); }
+  .day h3 { color: var(--cyan); }
+  .day .event { display: flex; gap: 0.6rem; margin: 0.45rem 0; align-items: baseline; }
+  .day .event .emoji { flex: 0 0 auto; }
+
+  /* tables */
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 16px; margin-bottom: 1rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.92rem; min-width: 420px; }
+  th {
+    font-family: 'Righteous', cursive; text-align: left; color: var(--cyan);
+    padding: 0.75rem 0.9rem; border-bottom: 1px solid var(--border);
+    background: rgba(0, 229, 255, 0.07); white-space: nowrap;
+  }
+  td { padding: 0.6rem 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.07); color: #ded4f2; }
+  tr:last-child td { border-bottom: none; }
+  .rank-1 td { color: var(--yellow); font-weight: 800; }
+  .trash { color: #ff8fc6; font-style: italic; }
+
+  /* teams */
+  .team-card { text-align: center; }
+  .team-card h3 { font-size: 1.35rem; }
+  .team-nokids h3 { color: var(--cyan); }
+  .team-dads h3 { color: var(--orange); }
+  .roster { list-style: none; padding: 0 !important; }
+  .roster li { padding: 0.28rem 0; border-bottom: 1px dashed rgba(255,255,255,0.1); }
+  .roster li:last-child { border-bottom: none; }
+  .vs {
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Monoton', cursive; font-size: 2.4rem; color: var(--pink);
+    text-shadow: 0 0 14px rgba(255,45,149,0.7);
+  }
+  .free-agents { text-align: center; margin-top: 1rem; }
+
+  /* faq */
+  details {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 0.9rem 1.1rem; margin-bottom: 0.7rem;
+  }
+  summary { cursor: pointer; font-weight: 800; color: #fff; font-size: 0.98rem; }
+  details p { margin-top: 0.6rem; color: #d5c9ee; font-size: 0.93rem; line-height: 1.5; }
+
+  footer {
+    text-align: center; padding: 3rem 1rem 2.2rem; color: #9b8bbd; font-size: 0.85rem;
+    border-top: 1px solid rgba(255,255,255,0.08); margin-top: 3rem; line-height: 1.8;
+  }
+  footer .beachball { font-size: 2rem; display: inline-block; animation: spin 6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .marquee-wrap { overflow: hidden; background: var(--pink); padding: 0.4rem 0; }
+  .marquee {
+    display: inline-block; white-space: nowrap; animation: scroll 22s linear infinite;
+    font-weight: 800; color: var(--deep); font-size: 0.85rem; letter-spacing: 0.06em;
+  }
+  @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="#top">🏖️ BEERBEACHBALLS</a>
+  <div class="links">
+    <a href="#vitals">The Vitals</a>
+    <a href="#schedule">Schedule</a>
+    <a href="#games">Games</a>
+    <a href="#golf">Golf</a>
+    <a href="#teams">Teams</a>
+    <a href="#faq">FAQ</a>
+  </div>
+</nav>
+
+<header id="top">
+  <div class="sun" aria-hidden="true"></div>
+  <h1>BEER<br>BEACH BALLS</h1>
+  <div class="subtitle">Justin's Bachelor Party · Wilmington, NC</div>
+  <div class="motto">Good Luck · Have Fun · Don't Die</div>
+  <div class="hero-meta">
+    <strong id="date-line">September 2026 · exact dates dropping soon</strong><br>
+    Official theme: <strong>80s Beach</strong> 🕶️ (yes, this is mandatory)
+  </div>
+  <div class="countdown" id="countdown" hidden>
+    <div class="count-box"><div class="num" id="cd-days">–</div><div class="label">Days</div></div>
+    <div class="count-box"><div class="num" id="cd-hours">–</div><div class="label">Hours</div></div>
+    <div class="count-box"><div class="num" id="cd-mins">–</div><div class="label">Minutes</div></div>
+    <div class="count-box"><div class="num" id="cd-secs">–</div><div class="label">Seconds</div></div>
+  </div>
+  <div class="scroll-hint" aria-hidden="true">🍺</div>
+  <div class="grid-floor" aria-hidden="true"></div>
+</header>
+
+<div class="marquee-wrap" aria-hidden="true">
+  <span class="marquee">JUSTIN IS GETTING MARRIED &nbsp;🍻&nbsp; ONE LAST RIDE &nbsp;🏖️&nbsp; BRING YOUR 80s BEACH FIT &nbsp;🕶️&nbsp; TODD IS RANKED #1 AND WE HATE IT &nbsp;⛳&nbsp; GOOD LUCK, HAVE FUN, DON'T DIE &nbsp;💀&nbsp; JUSTIN IS GETTING MARRIED &nbsp;🍻&nbsp; ONE LAST RIDE &nbsp;🏖️&nbsp; BRING YOUR 80s BEACH FIT &nbsp;🕶️&nbsp; TODD IS RANKED #1 AND WE HATE IT &nbsp;⛳&nbsp; GOOD LUCK, HAVE FUN, DON'T DIE &nbsp;💀&nbsp;</span>
+</div>
+
+<main>
+
+  <!-- THE VITALS -->
+  <section id="vitals">
+    <div class="kicker">The stuff you actually need</div>
+    <h2>The Vitals</h2>
+    <p class="blurb">Everything required to successfully arrive, party, and be returned to your loved ones in acceptable condition.</p>
+    <div class="grid-2">
+      <div class="card">
+        <h3>📍 Where</h3>
+        <p class="big-fact" id="address-text"><span class="placeholder">Airbnb address coming soon</span></p>
+        <p>Wilmington, North Carolina. Beach proximity: extremely yes.</p>
+        <a class="btn" id="maps-link" href="https://www.google.com/maps/search/Wilmington+NC" target="_blank" rel="noopener">Open in Maps</a>
+        <button class="btn" id="copy-address" hidden>Copy Address</button>
+      </div>
+      <div class="card">
+        <h3>🗓️ When</h3>
+        <p class="big-fact" id="when-text"><span class="placeholder">5 days in September — dates TBD</span></p>
+        <p>Check-in is <strong>4:00 PM Thursday</strong>. Do not arrive at 9 AM and stand in the driveway. Or do — the neighbors should get used to us early.</p>
+      </div>
+      <div class="card">
+        <h3>🎒 What to Bring</h3>
+        <ul>
+          <li><strong>An 80s beach outfit.</strong> Neon, short shorts, aviators, tank tops with objectionable slogans. Commit to the bit.</li>
+          <li>Golf clubs (if you're playing Friday)</li>
+          <li>Swimsuit, sunscreen, sandals</li>
+          <li>Cash/Venmo for groceries, green fees &amp; dinner</li>
+          <li>A cooler if you've got one</li>
+          <li>Your Mario Kart 64 muscle memory</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>🛒 Supplies Run</h3>
+        <p>First official activity Thursday: a grocery run that is legally described as "groceries" but is, statistically speaking, beer. If you have requests, get them on the spreadsheet before we go.</p>
+        <a class="btn" href="https://docs.google.com/spreadsheets/d/16d2olPyLYPfXZpBWFHFiUQC14JZ9CVqBfT-_YxTjlzo/edit" target="_blank" rel="noopener">The Sacred Spreadsheet</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCHEDULE -->
+  <section id="schedule">
+    <div class="kicker">A plan, loosely speaking</div>
+    <h2>The Schedule (Roughly)</h2>
+    <p class="blurb">"Roughly" is doing a lot of work in that sentence. Times are vibes. The beach is always open.</p>
+    <div class="grid-2">
+      <div class="card day">
+        <h3>Thursday — Arrival Day</h3>
+        <div class="event"><span class="emoji">🚗</span><span>Everyone rolls in</span></div>
+        <div class="event"><span class="emoji">🛒</span><span>Grocery shop (aka beer)</span></div>
+        <div class="event"><span class="emoji">🔑</span><span>Check-in at 4:00 PM</span></div>
+        <div class="event"><span class="emoji">🎉</span><span>Party. That's it. That's the agenda item.</span></div>
+      </div>
+      <div class="card day">
+        <h3>Friday — Golf Day</h3>
+        <div class="event"><span class="emoji">⛳</span><span>Golf (see the Power Rankings below and place your bets)</span></div>
+        <div class="event"><span class="emoji">🏖️</span><span>Beach</span></div>
+        <div class="event"><span class="emoji">🍽️</span><span>Likely group dinner night — Whitmore leaves Saturday morning and we refuse to feed him a farewell breakfast instead</span></div>
+      </div>
+      <div class="card day">
+        <h3>Saturday — Beach Day</h3>
+        <div class="event"><span class="emoji">🏖️</span><span>Beach, but with more commitment</span></div>
+        <div class="event"><span class="emoji">🏈</span><span>College Football Pick 'Em — bragging rights on the line</span></div>
+        <div class="event"><span class="emoji">🏆</span><span>Games tournament continues (see below)</span></div>
+      </div>
+      <div class="card day">
+        <h3>Sunday — The Reckoning</h3>
+        <div class="event"><span class="emoji">🧮</span><span>Count the tokens, crown the champions</span></div>
+        <div class="event"><span class="emoji">🧹</span><span>Make the Airbnb look like nothing happened</span></div>
+        <div class="event"><span class="emoji">👋</span><span>Emotional goodbyes, firm handshakes, denial about Monday</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GAMES -->
+  <section id="games">
+    <div class="kicker">The Beer Beach Ball Olympics</div>
+    <h2>The Games</h2>
+    <p class="blurb">Scoring system: <strong>1 token per win. All tokens are equal.</strong> Tokens get counted at the end of the weekend and the winning team receives glory, which is non-transferable and has no cash value.</p>
+    <div class="grid-3">
+      <div class="card"><h3>⛳ Golf</h3><p>Friday. The main event for the sickos who brought clubs. Rankings below are official and legally binding.</p></div>
+      <div class="card"><h3>🥅 Putter Ball</h3><p>Justin's domain (Robert subs in if we need two). Like beer pong and mini golf had a child neither claims.</p></div>
+      <div class="card"><h3>🥤 Flip Cup</h3><p>Teams and bracket drawn from a hat, which is the fairest legal system humanity has produced.</p></div>
+      <div class="card"><h3>🏓 Beer Pong</h3><p>Also hat-drawn teams and bracket. House rules will be argued about for a minimum of 25 minutes before game one.</p></div>
+      <div class="card"><h3>🌽 Cornhole</h3><p>Boards supplied by Robert &amp; Jamison. Bags fly, friendships end.</p></div>
+      <div class="card"><h3>🏎️ Mario Kart 64</h3><p>Todd brings the N64. Robert &amp; Justin bring controllers. Rainbow Road settles all outstanding disputes.</p></div>
+      <div class="card"><h3>🏈 CFB Pick 'Em</h3><p>Saturday. Pick college football winners. Whoever loses had "a system."</p></div>
+    </div>
+  </section>
+
+  <!-- GOLF RANKINGS -->
+  <section id="golf">
+    <div class="kicker">100% objective, 0% disputed</div>
+    <h2>Golf Power Rankings</h2>
+    <p class="blurb">Straight from the spreadsheet. Rankings were assigned by a rigorous scientific process (someone typed numbers). Unranked golfers are wildcards and therefore dangerous.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Rank</th><th>Golfer</th><th>Scouting Report</th></tr></thead>
+        <tbody>
+          <tr class="rank-1"><td>1</td><td>Todd</td><td class="trash">"fuck you todd it's true" — the spreadsheet, verbatim</td></tr>
+          <tr><td>2</td><td>Bernie</td><td>Quiet. Consistent. Terrifying.</td></tr>
+          <tr><td>3</td><td>Kirk</td><td>Podium threat, handshake enthusiast</td></tr>
+          <tr><td>9</td><td>Jamison</td><td>Brings cornhole boards, brings mid golf</td></tr>
+          <tr><td>10</td><td>Robert</td><td>Better at supplying equipment than using it</td></tr>
+          <tr><td>11</td><td>Justin</td><td>The groom. Let him win nothing. He'd want it that way.</td></tr>
+          <tr><td>12</td><td>Zac</td><td>Ranked 12th out of 12 ranked golfers. Statistically our floor.</td></tr>
+          <tr><td>—</td><td>Eric Witdabigdick</td><td>Name entered into spreadsheet exactly like that. We have questions.</td></tr>
+          <tr><td>—</td><td>Marci</td><td>Entered in ALL CAPS, which suggests confidence</td></tr>
+          <tr><td>—</td><td>Chan</td><td>Unranked. Unknowable. Unbothered.</td></tr>
+          <tr><td>—</td><td>Roman</td><td>Mystery box contestant</td></tr>
+          <tr><td>—</td><td>Phil C</td><td>The C stands for "could go either way"</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="blurb">Maybes: Josh, Disalvo, Whitmore — commit, cowards.</p>
+  </section>
+
+  <!-- TEAMS -->
+  <section id="teams">
+    <div class="kicker">The Fertility Draft</div>
+    <h2>The Teams</h2>
+    <p class="blurb">Teams are decided by the only stat that matters: number of children produced. This is real. This is how we chose. Nobody has a better idea.</p>
+    <div class="grid-3" style="align-items: start;">
+      <div class="card team-card team-nokids">
+        <h3>🍼 Team No Kids</h3>
+        <p style="margin-bottom: 0.6rem;"><em>Well-rested. Disposable income. Something to prove.</em></p>
+        <ul class="roster">
+          <li>Justin 🤵 (the groom)</li>
+          <li>Steve (best man, webmaster, hero)</li>
+          <li>Eric</li>
+          <li>Kirk</li>
+          <li>Phil</li>
+          <li>Bernie</li>
+          <li>TG</li>
+          <li>Disalvo</li>
+        </ul>
+      </div>
+      <div class="vs" aria-hidden="true">VS</div>
+      <div class="card team-card team-dads">
+        <h3>👨‍👧‍👦 Team Dads (2+)</h3>
+        <p style="margin-bottom: 0.6rem;"><em>Tired. Efficient. Haven't slept since 2019 and it made them stronger.</em></p>
+        <ul class="roster">
+          <li>Chan</li>
+          <li>Roman</li>
+          <li>Zac</li>
+          <li>Josh</li>
+          <li>Jamison</li>
+          <li>Robert</li>
+          <li>Whitmore <small>(leaving Sat AM — plays hard, leaves early)</small></li>
+          <li>Stinnie</li>
+          <li>Jorge</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card free-agents">
+      <h3>⚖️ Free Agents (exactly 1 kid)</h3>
+      <p><strong>Marci</strong> and <strong>Todd</strong> — trapped between worlds. One kid each. Will be assigned to balance the teams, or auctioned off, whichever is funnier.</p>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <div class="kicker">Answers to inevitable questions</div>
+    <h2>FAQ</h2>
+    <details>
+      <summary>Do I really have to dress 80s Beach?</summary>
+      <p>Yes. The theme was ratified in the spreadsheet, and the spreadsheet is our constitution. Think Miami Vice lifeguard, off-duty Hulk Hogan, or a man who owns exactly one pair of sunglasses and they're heart-shaped. Effort will be noticed. So will its absence.</p>
+    </details>
+    <details>
+      <summary>What does "Don't Die" mean in the motto?</summary>
+      <p>It's a legally non-binding safety guideline. Hydrate between beers, wear sunscreen, and do not attempt to prove anything about the ocean. The ocean has been undefeated for 4 billion years.</p>
+    </details>
+    <details>
+      <summary>I don't golf. Am I useless on Friday?</summary>
+      <p>Absolutely not — beach shift starts immediately. Someone has to hold down the house, ice the coolers, and heckle the golfers via group text.</p>
+    </details>
+    <details>
+      <summary>How do I pay for my share?</summary>
+      <p>Venmo the best man (Steve). Cost breakdown is on the spreadsheet. Bring extra cash for green fees and dinner. The groom pays for nothing — that's the whole point.</p>
+    </details>
+    <details>
+      <summary>Can I bring a plus one?</summary>
+      <p>Brother, this is a bachelor party.</p>
+    </details>
+    <details>
+      <summary>What happens at the bachelor party...</summary>
+      <p>...gets recorded on the scoreboard, because tokens must be counted. Everything else stays in Wilmington.</p>
+    </details>
+  </section>
+
+</main>
+
+<footer>
+  <span class="beachball">🏖️</span><br>
+  <strong>beerbeachballs.com</strong> — built with love, spite, and a Google Sheet<br>
+  Questions? Yell at Steve, the best man.<br>
+  <span style="opacity: 0.6;">Justin, if you're reading this: it's too late to elope.</span>
+</footer>
+
+<script>
+  // ====== EDIT THESE ======
+  // Set once the dates and Airbnb are locked in:
+  const PARTY_START = null;              // e.g. '2026-09-17T16:00:00-04:00' (check-in Thursday 4 PM)
+  const PARTY_LABEL = null;              // e.g. 'September 17–21, 2026'
+  const AIRBNB_ADDRESS = null;           // e.g. '123 Beach Ball Blvd, Wilmington, NC 28401'
+  // ========================
+
+  if (PARTY_LABEL) {
+    document.getElementById('date-line').textContent = PARTY_LABEL;
+    document.getElementById('when-text').innerHTML = '<strong>' + PARTY_LABEL + '</strong>';
+  }
+
+  if (AIRBNB_ADDRESS) {
+    document.getElementById('address-text').textContent = AIRBNB_ADDRESS;
+    document.getElementById('maps-link').href =
+      'https://www.google.com/maps/search/' + encodeURIComponent(AIRBNB_ADDRESS);
+    const copyBtn = document.getElementById('copy-address');
+    copyBtn.hidden = false;
+    copyBtn.addEventListener('click', async () => {
+      await navigator.clipboard.writeText(AIRBNB_ADDRESS);
+      copyBtn.textContent = 'Copied! 🍺';
+      setTimeout(() => (copyBtn.textContent = 'Copy Address'), 2000);
+    });
+  }
+
+  if (PARTY_START) {
+    const target = new Date(PARTY_START).getTime();
+    const el = document.getElementById('countdown');
+    el.hidden = false;
+    const pad = n => String(n).padStart(2, '0');
+    const tick = () => {
+      const diff = target - Date.now();
+      if (diff <= 0) {
+        el.innerHTML = '<div class="count-box"><div class="num">🍻</div><div class="label">IT\'S HAPPENING</div></div>';
+        return;
+      }
+      document.getElementById('cd-days').textContent = Math.floor(diff / 864e5);
+      document.getElementById('cd-hours').textContent = pad(Math.floor(diff / 36e5) % 24);
+      document.getElementById('cd-mins').textContent = pad(Math.floor(diff / 6e4) % 60);
+      document.getElementById('cd-secs').textContent = pad(Math.floor(diff / 1e3) % 60);
+      setTimeout(tick, 1000);
+    };
+    tick();
+  }
+</script>
+
+</body>
+</html>
