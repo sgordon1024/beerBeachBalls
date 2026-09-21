@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PICK 'EM — Beer Beach Balls</title>
+<meta name="description" content="College football confidence pool. 15 games. $10 a head. Winner takes all.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Monoton&family=Righteous&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏈</text></svg>">
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
+<style>
+  :root {
+    --pink: #ff2d95;
+    --cyan: #00e5ff;
+    --orange: #ff9e00;
+    --yellow: #ffe600;
+    --purple: #1a0533;
+    --deep: #0d021f;
+    --card: rgba(255, 255, 255, 0.06);
+    --border: rgba(0, 229, 255, 0.35);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--deep);
+    color: #f0eaff;
+    overflow-x: hidden;
+    padding-bottom: 90px;
+  }
+
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(13, 2, 31, 0.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.6rem 1rem;
+  }
+  nav .logo { font-family: 'Righteous', cursive; color: var(--cyan); font-size: 1.05rem; text-decoration: none; white-space: nowrap; }
+  nav .lock-pill { font-size: 0.75rem; font-weight: 800; color: var(--yellow); border: 1px solid rgba(255,230,0,0.5); border-radius: 999px; padding: 0.25rem 0.7rem; white-space: nowrap; }
+
+  .wrap { max-width: 560px; margin: 0 auto; padding: 1.2rem 0.8rem 2rem; }
+
+  h1 {
+    font-family: 'Monoton', cursive; font-weight: 400;
+    color: var(--pink); text-align: center;
+    font-size: clamp(2rem, 9vw, 3rem); letter-spacing: 0.05em;
+    text-shadow: 0 0 18px rgba(255, 45, 149, 0.6);
+    margin: 0.6rem 0 0.2rem;
+  }
+  .sub { text-align: center; font-size: 0.9rem; opacity: 0.85; margin-bottom: 0.3rem; }
+  .pot { text-align: center; font-size: 0.8rem; color: var(--orange); font-weight: 600; margin-bottom: 1rem; }
+
+  .tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+  .tabs button {
+    flex: 1; padding: 0.6rem; font-family: 'Righteous', cursive; font-size: 0.95rem;
+    background: var(--card); color: #f0eaff; border: 1px solid var(--border); border-radius: 10px; cursor: pointer;
+  }
+  .tabs button.active { background: rgba(0, 229, 255, 0.15); color: var(--cyan); box-shadow: 0 0 12px rgba(0, 229, 255, 0.25); }
+
+  .howto {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 0.8rem 1rem; font-size: 0.83rem; line-height: 1.5; margin-bottom: 1rem;
+  }
+  .howto strong { color: var(--yellow); }
+
+  .name-row { margin-bottom: 1rem; }
+  .name-row label { display: block; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cyan); margin-bottom: 0.3rem; }
+  .name-row input {
+    width: 100%; padding: 0.7rem 0.9rem; font-size: 1rem; font-family: 'Inter', sans-serif;
+    background: rgba(255,255,255,0.08); color: #fff; border: 1px solid var(--border); border-radius: 10px; outline: none;
+  }
+  .name-row input:focus { border-color: var(--pink); box-shadow: 0 0 10px rgba(255,45,149,0.3); }
+
+  /* ---------- GAME CARDS ---------- */
+  #gameList { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+  .game {
+    display: flex; align-items: stretch; gap: 0.5rem;
+    background: var(--card); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px;
+    padding: 0.5rem;
+    touch-action: pan-y;
+  }
+  .game.sortable-chosen { border-color: var(--pink); box-shadow: 0 0 16px rgba(255,45,149,0.4); background: rgba(255,45,149,0.08); }
+  .rail {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.15rem;
+    min-width: 46px; border-radius: 9px; cursor: grab;
+    background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2);
+    user-select: none; -webkit-user-select: none;
+  }
+  .rail .pts { font-family: 'Righteous', cursive; font-size: 1.25rem; color: var(--cyan); }
+  .rail .grip { font-size: 0.85rem; opacity: 0.55; letter-spacing: 0.1em; }
+  .rail .ptslabel { font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.6; }
+  .nudge {
+    display: flex; flex-direction: column; justify-content: space-between; gap: 0.3rem;
+  }
+  .nudge button {
+    width: 34px; flex: 1; font-size: 0.8rem; cursor: pointer;
+    background: rgba(255,255,255,0.05); color: var(--cyan);
+    border: 1px solid rgba(255,255,255,0.18); border-radius: 8px;
+  }
+  .nudge button:disabled { opacity: 0.25; cursor: default; }
+  .nudge button:active { background: rgba(0,229,255,0.2); }
+  .body { flex: 1; min-width: 0; }
+  .meta { display: flex; justify-content: space-between; font-size: 0.7rem; opacity: 0.75; padding: 0 0.15rem 0.35rem; }
+  .meta .spread { color: var(--orange); font-weight: 600; }
+  .matchup { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+  .team {
+    display: flex; align-items: center; gap: 0.45rem;
+    padding: 0.5rem 0.5rem; border-radius: 9px; cursor: pointer;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.14);
+    text-align: left; color: #f0eaff; font-family: 'Inter', sans-serif; min-width: 0;
+  }
+  .team img {
+    width: 32px; height: 32px; flex-shrink: 0;
+    background: #fff; border-radius: 50%; padding: 3px;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.25);
+    object-fit: contain;
+  }
+  .team .tinfo { min-width: 0; display: flex; flex-direction: column; }
+  .team .tname { font-size: 0.78rem; font-weight: 800; line-height: 1.15; overflow-wrap: anywhere; }
+  .team .tname .rank { color: var(--orange); font-weight: 800; }
+  .team .tsub { font-size: 0.65rem; opacity: 0.7; }
+  .team.picked {
+    background: rgba(255, 230, 0, 0.16); border-color: var(--yellow);
+    box-shadow: 0 0 10px rgba(255, 230, 0, 0.25);
+  }
+  .team.picked .tsub::after { content: " · ✔ PICK"; color: var(--yellow); font-weight: 800; }
+
+  .progress { text-align: center; font-size: 0.8rem; margin: 1rem 0 0.5rem; opacity: 0.85; }
+  .progress .done { color: var(--yellow); font-weight: 800; }
+
+  .submit-bar {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(13, 2, 31, 0.95); backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border); padding: 0.7rem 0.8rem calc(0.7rem + env(safe-area-inset-bottom));
+  }
+  .submit-bar .inner { max-width: 560px; margin: 0 auto; display: flex; gap: 0.7rem; align-items: center; }
+  .submit-bar .status { flex: 1; font-size: 0.72rem; line-height: 1.3; opacity: 0.85; }
+  .submit-bar button {
+    padding: 0.7rem 1.4rem; font-family: 'Righteous', cursive; font-size: 1rem; white-space: nowrap;
+    background: linear-gradient(135deg, var(--pink), var(--orange)); color: #fff;
+    border: none; border-radius: 10px; cursor: pointer; box-shadow: 0 0 14px rgba(255,45,149,0.5);
+  }
+  .submit-bar button:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+
+  .locked-banner {
+    background: rgba(255, 158, 0, 0.12); border: 1px solid var(--orange); color: var(--orange);
+    border-radius: 12px; padding: 0.8rem 1rem; text-align: center; font-weight: 800; margin-bottom: 1rem;
+  }
+
+  /* ---------- LEADERBOARD ---------- */
+  #leaderboardTab { display: none; }
+  .lb-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; text-align: center; }
+  .lb-card h2 { font-family: 'Righteous', cursive; color: var(--cyan); font-size: 1.1rem; margin-bottom: 0.5rem; }
+  .lb-card p { font-size: 0.85rem; line-height: 1.5; opacity: 0.85; }
+  .lb-rules { margin-top: 0.8rem; font-size: 0.78rem; color: var(--orange); font-weight: 600; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 110px; transform: translateX(-50%);
+    background: rgba(0,229,255,0.15); border: 1px solid var(--cyan); color: var(--cyan);
+    padding: 0.6rem 1.2rem; border-radius: 999px; font-size: 0.85rem; font-weight: 600;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 200; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="index.html">🏖️ BEERBEACHBALLS</a>
+  <span class="lock-pill" id="lockPill">⏳ …</span>
+</nav>
+
+<div class="wrap">
+  <h1>PICK 'EM</h1>
+  <div class="sub">Saturday, September 26 · 15 games · confidence style</div>
+  <div class="pot">💰 $10 a head · winner takes all · 2nd gets their money back</div>
+
+  <div class="tabs">
+    <button id="tabPicks" class="active" onclick="showTab('picks')">MY PICKS</button>
+    <button id="tabLb" onclick="showTab('lb')">LEADERBOARD</button>
+  </div>
+
+  <div id="picksTab">
+    <div class="locked-banner" id="lockedBanner" style="display:none">🔒 PICKS ARE LOCKED — good luck, degenerates</div>
+
+    <div class="howto">
+      <strong>How it works:</strong> Tap a team to pick the winner of each game (straight up — the spread is just for reference).
+      Then <strong>drag games up and down</strong> (or tap the ▲▼ arrows): your most confident pick goes on <strong>top (worth 15 pts)</strong>,
+      least confident on the bottom (worth 1). Right pick = you get those points. Most points wins.
+      Edit as much as you want until <strong>noon ET Saturday</strong>.
+    </div>
+
+    <div class="name-row">
+      <label for="entryName">Your name</label>
+      <input id="entryName" type="text" maxlength="30" placeholder="e.g. Big Steve" autocomplete="off">
+    </div>
+
+    <ul id="gameList"></ul>
+
+    <div class="progress" id="progress"></div>
+  </div>
+
+  <div id="leaderboardTab">
+    <div class="lb-card">
+      <h2>LEADERBOARD</h2>
+      <p id="lbBody">Everyone's picks stay hidden until kickoff (no copying, you snakes).<br>
+      The leaderboard goes live at noon Saturday and updates as games finish.</p>
+      <div class="lb-rules">💰 $10 buy-in · 1st takes the pot · 2nd gets their $10 back</div>
+    </div>
+  </div>
+</div>
+
+<div class="submit-bar" id="submitBar">
+  <div class="inner">
+    <div class="status" id="status">Pick all 15 games and add your name to lock it in.</div>
+    <button id="submitBtn" onclick="submitEntry()">SUBMIT</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================
+   EDIT THESE — pool settings
+   ===================================================== */
+const LOCK_TIME = Date.parse('2026-09-26T16:00:00Z'); // noon ET Saturday — ALL picks lock here
+const BACKEND = null; // TODO phase 2: paste Firebase config here to enable shared entries + live leaderboard
+
+/* Games in kickoff order. Records/ranks/spreads pulled from ESPN on Sept 21 —
+   refresh before Saturday. rank = current AP Top 25. spread null = no line (small schools). */
+const GAMES = [
+  { id:'vt-bc',    espnId:'401858242', time:'12:00 PM', spread:'VT -14',    away:{tid:'259', name:'Virginia Tech',  rec:'3-0', rank:null}, home:{tid:'103', name:'Boston College', rec:'2-1', rank:null} },
+  { id:'cnu-sus',  espnId:'401908704', time:'12:00 PM', spread:null,        away:{tid:'3112',name:'Chris Newport',  rec:'2-0', rank:null}, home:{tid:'216', name:'Susquehanna',    rec:'3-0', rank:null} },
+  { id:'tex-tenn', espnId:'401856704', time:'12:00 PM', spread:'TEX -4.5',  away:{tid:'251', name:'Texas',          rec:'3-0', rank:1},    home:{tid:'2633',name:'Tennessee',      rec:'3-0', rank:14} },
+  { id:'ucla-md',  espnId:'401858462', time:'1:30 PM',  spread:'UCLA -1.5', away:{tid:'26',  name:'UCLA',           rec:'3-0', rank:null}, home:{tid:'120', name:'Maryland',       rec:'2-1', rank:null} },
+  { id:'nd-pur',   espnId:'401858467', time:'2:00 PM',  spread:'ND -27.5',  away:{tid:'87',  name:'Notre Dame',     rec:'3-0', rank:3},    home:{tid:'2509',name:'Purdue',         rec:'1-2', rank:null} },
+  { id:'ou-uga',   espnId:'401856700', time:'3:30 PM',  spread:'UGA -14',   away:{tid:'201', name:'Oklahoma',       rec:'2-1', rank:null}, home:{tid:'61',  name:'Georgia',        rec:'3-0', rank:2} },
+  { id:'iowa-mich',espnId:'401858463', time:'3:30 PM',  spread:'MICH -5.5', away:{tid:'2294',name:'Iowa',           rec:'3-0', rank:17},   home:{tid:'130', name:'Michigan',       rec:'3-0', rank:18} },
+  { id:'tcu-ucf',  espnId:'401856815', time:'3:30 PM',  spread:'TCU -3',    away:{tid:'2628',name:'TCU',            rec:'2-1', rank:null}, home:{tid:'2116',name:'UCF',            rec:'2-1', rank:null} },
+  { id:'van-aub',  espnId:'401856698', time:'4:15 PM',  spread:'AUB -9.5',  away:{tid:'238', name:'Vanderbilt',     rec:'3-0', rank:null}, home:{tid:'2',   name:'Auburn',         rec:'2-1', rank:null} },
+  { id:'jmu-odu',  espnId:'401869961', time:'6:00 PM',  spread:'JMU -6',    away:{tid:'256', name:'James Madison',  rec:'3-0', rank:null}, home:{tid:'295', name:'Old Dominion',   rec:'1-2', rank:null} },
+  { id:'okst-wvu', espnId:'401856881', time:'7:00 PM',  spread:'WVU -2.5',  away:{tid:'197', name:'Oklahoma St',    rec:'2-1', rank:null}, home:{tid:'277', name:'West Virginia',  rec:'3-0', rank:null} },
+  { id:'tam-lsu',  espnId:'401856702', time:'7:30 PM',  spread:'LSU -9.5',  away:{tid:'245', name:'Texas A&M',      rec:'2-1', rank:23},   home:{tid:'99',  name:'LSU',            rec:'2-1', rank:10} },
+  { id:'ore-usc',  espnId:'401858469', time:'7:30 PM',  spread:'ORE -3',    away:{tid:'2483',name:'Oregon',         rec:'2-1', rank:20},   home:{tid:'30',  name:'USC',            rec:'4-0', rank:12} },
+  { id:'hcu-unt',  espnId:'401862783', time:'7:30 PM',  spread:null,        away:{tid:'2277',name:'Hou Christian',  rec:'2-2', rank:null}, home:{tid:'249', name:'North Texas',    rec:'1-2', rank:null} },
+  { id:'tlsa-ark', espnId:'401856697', time:'8:00 PM',  spread:'ARK -6.5',  away:{tid:'202', name:'Tulsa',          rec:'3-0', rank:null}, home:{tid:'8',   name:'Arkansas',       rec:'1-2', rank:null} },
+];
+
+/* ===================================================== */
+const N = GAMES.length;
+const STORE_KEY = 'bbb_pickem_v1';
+const byId = Object.fromEntries(GAMES.map(g => [g.id, g]));
+let state = { name:'', order: GAMES.map(g => g.id), picks:{}, submittedAt:null };
+
+function isLocked() { return Date.now() >= LOCK_TIME; }
+function logo(tid) { return `https://a.espncdn.com/i/teamlogos/ncaa/500/${tid}.png`; }
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (saved && Array.isArray(saved.order)) {
+      const valid = saved.order.filter(id => byId[id]);
+      GAMES.forEach(g => { if (!valid.includes(g.id)) valid.push(g.id); });
+      state = { ...state, ...saved, order: valid, picks: saved.picks || {} };
+    }
+  } catch (e) { /* corrupted draft — start fresh */ }
+}
+function save() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+
+function teamBtn(g, side) {
+  const t = g[side];
+  const picked = state.picks[g.id] === t.tid ? ' picked' : '';
+  const rank = t.rank ? `<span class="rank">#${t.rank}</span> ` : '';
+  return `<button class="team${picked}" data-game="${g.id}" data-team="${t.tid}" ${isLocked() ? 'disabled' : ''}>
+    <img src="${logo(t.tid)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+    <span class="tinfo">
+      <span class="tname">${rank}${esc(t.name)}</span>
+      <span class="tsub">${esc(t.rec)} · ${side === 'away' ? 'Away' : 'Home'}</span>
+    </span>
+  </button>`;
+}
+
+function render() {
+  const list = document.getElementById('gameList');
+  list.innerHTML = state.order.map((id, i) => {
+    const g = byId[id];
+    return `<li class="game" data-id="${g.id}">
+      <div class="rail"><span class="grip">☰</span><span class="pts">${N - i}</span><span class="ptslabel">pts</span></div>
+      <div class="nudge">
+        <button data-move="up" data-idx="${i}" ${i === 0 || isLocked() ? 'disabled' : ''} aria-label="more confident">▲</button>
+        <button data-move="down" data-idx="${i}" ${i === N - 1 || isLocked() ? 'disabled' : ''} aria-label="less confident">▼</button>
+      </div>
+      <div class="body">
+        <div class="meta"><span>🏈 ${g.time} ET</span><span class="spread">${g.spread ? esc(g.spread) : 'no line'}</span></div>
+        <div class="matchup">${teamBtn(g, 'away')}${teamBtn(g, 'home')}</div>
+      </div>
+    </li>`;
+  }).join('');
+
+  list.querySelectorAll('.team').forEach(btn => btn.addEventListener('click', () => {
+    if (isLocked()) return;
+    state.picks[btn.dataset.game] = btn.dataset.team;
+    save(); render();
+  }));
+
+  list.querySelectorAll('.nudge button').forEach(btn => btn.addEventListener('click', () => {
+    if (isLocked()) return;
+    const i = +btn.dataset.idx;
+    const j = btn.dataset.move === 'up' ? i - 1 : i + 1;
+    if (j < 0 || j >= N) return;
+    [state.order[i], state.order[j]] = [state.order[j], state.order[i]];
+    save(); render();
+  }));
+
+  const done = Object.keys(state.picks).filter(id => byId[id]).length;
+  document.getElementById('progress').innerHTML =
+    `<span class="done">${done} / ${N}</span> games picked`;
+  updateStatus(done);
+}
+
+function updateStatus(done) {
+  const btn = document.getElementById('submitBtn');
+  const status = document.getElementById('status');
+  if (isLocked()) {
+    btn.disabled = true;
+    status.textContent = state.submittedAt ? 'Locked in. Scoreboard-watching time. 🍺' : 'Picks are locked — you snoozed.';
+    return;
+  }
+  const name = document.getElementById('entryName').value.trim();
+  btn.disabled = !(done === N && name);
+  if (done < N) status.textContent = `${N - done} game${N - done === 1 ? '' : 's'} left to pick.`;
+  else if (!name) status.textContent = 'Add your name up top to lock it in.';
+  else status.textContent = state.submittedAt ? 'Saved! You can keep editing until noon Sat.' : 'Ready — hit submit.';
+}
+
+async function submitEntry() {
+  if (isLocked()) return;
+  state.name = document.getElementById('entryName').value.trim();
+  const entry = {
+    name: state.name,
+    picks: state.order.map((id, i) => ({ game: id, team: state.picks[id], pts: N - i })),
+    updatedAt: new Date().toISOString(),
+  };
+  state.submittedAt = entry.updatedAt;
+  save();
+  if (!BACKEND) {
+    toast('Saved on this phone ✔ (shared leaderboard coming before Sat)');
+  } else {
+    // TODO phase 2: write entry to Firebase, keyed by name (one entry per person)
+    toast('Entry submitted ✔');
+  }
+  updateStatus(Object.keys(state.picks).length);
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+function showTab(which) {
+  document.getElementById('picksTab').style.display = which === 'picks' ? '' : 'none';
+  document.getElementById('submitBar').style.display = which === 'picks' ? '' : 'none';
+  document.getElementById('leaderboardTab').style.display = which === 'lb' ? 'block' : 'none';
+  document.getElementById('tabPicks').classList.toggle('active', which === 'picks');
+  document.getElementById('tabLb').classList.toggle('active', which === 'lb');
+}
+
+function tickCountdown() {
+  const pill = document.getElementById('lockPill');
+  const ms = LOCK_TIME - Date.now();
+  if (ms <= 0) {
+    pill.textContent = '🔒 LOCKED';
+    document.getElementById('lockedBanner').style.display = '';
+    return;
+  }
+  const d = Math.floor(ms / 86400000), h = Math.floor(ms / 3600000) % 24, m = Math.floor(ms / 60000) % 60;
+  pill.textContent = d > 0 ? `⏳ locks in ${d}d ${h}h` : `⏳ locks in ${h}h ${m}m`;
+  setTimeout(tickCountdown, 30000);
+}
+
+load();
+document.getElementById('entryName').value = state.name || '';
+document.getElementById('entryName').addEventListener('input', () => {
+  state.name = document.getElementById('entryName').value.trim();
+  save();
+  updateStatus(Object.keys(state.picks).filter(id => byId[id]).length);
+});
+render();
+tickCountdown();
+
+if (!isLocked()) {
+  new Sortable(document.getElementById('gameList'), {
+    handle: '.rail',
+    animation: 180,
+    forceFallback: true,
+    fallbackTolerance: 4,
+    scroll: true,
+    scrollSensitivity: 60,
+    scrollSpeed: 12,
+    onEnd() {
+      state.order = [...document.querySelectorAll('#gameList .game')].map(el => el.dataset.id);
+      save(); render();
+    },
+  });
+}
+</script>
+</body>
+</html>
