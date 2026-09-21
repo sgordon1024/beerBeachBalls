@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BEER BEACH BALLS — Justin's Bachelor Party</title>
-<meta name="description" content="Justin's Bachelor Party. Wilmington, NC. 80s Beach. Good Luck, Have Fun, Don't Die.">
+<meta name="description" content="Justin's Bachelor Party. Thursday, Sept 24 to Sunday, Sept 27, 2026. Wrightsville Beach, NC. 80s Beach. Good Luck, Have Fun, Don't Die.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Monoton&family=Righteous&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
@@ -42,8 +42,22 @@
   nav .links { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: flex-end; }
   nav .links a { color: #f0eaff; text-decoration: none; font-size: 0.85rem; font-weight: 600; opacity: 0.85; }
   nav .links a:hover { color: var(--pink); opacity: 1; }
+  /* the hamburger menu, but make it a bachelor party */
+  .nav-burger {
+    display: none; background: none; border: none; cursor: pointer;
+    flex-direction: column; align-items: center; gap: 1px; padding: 0.15rem 0.4rem;
+  }
+  .nav-burger .shroom { display: block; font-size: 1.05rem; line-height: 1.05; transform: rotate(90deg); }
   @media (max-width: 700px) {
-    nav .links a:nth-child(n+5) { display: none; } /* keep nav tidy on phones */
+    .nav-burger { display: flex; }
+    nav .links {
+      display: none; position: absolute; top: 100%; left: 0; right: 0;
+      flex-direction: column; align-items: flex-end; gap: 0;
+      background: rgba(13, 2, 31, 0.97); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border); padding: 0.4rem 1.2rem 0.9rem;
+    }
+    nav .links.open { display: flex; }
+    nav .links a { padding: 0.5rem 0; font-size: 1rem; }
   }
 
   /* ---------- HERO ---------- */
@@ -150,7 +164,6 @@
   a.btn:active, button.btn:active { transform: scale(0.97); }
 
   /* schedule */
-  .day { border-left: 3px solid var(--cyan); }
   .day h3 { color: var(--cyan); }
   .day .event { display: flex; gap: 0.6rem; margin: 0.45rem 0; align-items: baseline; }
   .day .event .emoji { flex: 0 0 auto; }
@@ -234,7 +247,11 @@
 
 <nav>
   <a class="logo" href="#top">🏖️ BEERBEACHBALLS</a>
-  <div class="links">
+  <button class="nav-burger" id="navBurger" aria-label="Menu" aria-expanded="false">
+    <span class="shroom">🍆</span>
+    <span class="shroom">🍆</span>
+  </button>
+  <div class="links" id="navLinks">
     <a href="pickem.html">🏈 Pick 'Em</a>
     <a href="#vitals">The Vitals</a>
     <a href="#schedule">Schedule</a>
@@ -252,7 +269,7 @@
   <div class="subtitle">Wilmington, NC</div>
   <div class="motto">Good Luck · Have Fun · Don't Die</div>
   <div class="hero-meta">
-    <strong id="date-line">September 2026 · exact dates dropping soon</strong><br>
+    <strong id="date-line">Thursday, Sept 24 to Sunday, Sept 27, 2026</strong><br>
     Official theme: <strong>80s Beach</strong> 🕶️ (yes, this is mandatory)
   </div>
   <div class="countdown" id="countdown" hidden>
@@ -266,7 +283,7 @@
 </header>
 
 <div class="marquee-wrap" aria-hidden="true">
-  <span class="marquee">JUSTIN IS GETTING MARRIED &nbsp;🍻&nbsp; ONE LAST RIDE &nbsp;🏖️&nbsp; BRING YOUR 80s BEACH FIT &nbsp;🕶️&nbsp; TODD IS RANKED #1 AND WE HATE IT &nbsp;⛳&nbsp; GOOD LUCK, HAVE FUN, DON'T DIE &nbsp;💀&nbsp; JUSTIN IS GETTING MARRIED &nbsp;🍻&nbsp; ONE LAST RIDE &nbsp;🏖️&nbsp; BRING YOUR 80s BEACH FIT &nbsp;🕶️&nbsp; TODD IS RANKED #1 AND WE HATE IT &nbsp;⛳&nbsp; GOOD LUCK, HAVE FUN, DON'T DIE &nbsp;💀&nbsp;</span>
+  <span class="marquee">JUSTIN IS GETTING MARRIED &nbsp;🍻&nbsp; ONE LAST RIDE &nbsp;🏖️&nbsp; BRING YOUR 80s BEACH FIT &nbsp;🕶️&nbsp; TODD IS RANKED #1 AND WE HATE IT &nbsp;⛳&nbsp; SEPT 24 TO 27 &nbsp;🗓️&nbsp; 213 S LUMINA &nbsp;📍&nbsp; GOOD LUCK, HAVE FUN, DON'T DIE &nbsp;💀&nbsp; JUSTIN IS GETTING MARRIED &nbsp;🍻&nbsp; ONE LAST RIDE &nbsp;🏖️&nbsp; BRING YOUR 80s BEACH FIT &nbsp;🕶️&nbsp; TODD IS RANKED #1 AND WE HATE IT &nbsp;⛳&nbsp; SEPT 24 TO 27 &nbsp;🗓️&nbsp; 213 S LUMINA &nbsp;📍&nbsp; GOOD LUCK, HAVE FUN, DON'T DIE &nbsp;💀&nbsp;</span>
 </div>
 
 <main>
@@ -279,20 +296,25 @@
     <div class="grid-2">
       <div class="card">
         <h3>📍 Where</h3>
-        <p class="big-fact" id="address-text"><span class="placeholder">Airbnb address coming soon</span></p>
+        <p class="big-fact" id="address-text">213 S Lumina Ave, Wrightsville Beach, NC 28480</p>
         <p>Wrightsville Beach (Wilmington's beach). Lumina Ave is the beachfront strip — beach proximity: extremely yes.</p>
-        <a class="btn" id="maps-link" href="https://www.google.com/maps/search/Wilmington+NC" target="_blank" rel="noopener">Open in Maps</a>
+        <a class="btn" id="maps-link" href="https://www.google.com/maps/search/?api=1&amp;query=213+S+Lumina+Ave+Wrightsville+Beach+NC+28480" target="_blank" rel="noopener">Open in Maps</a>
         <button class="btn" id="copy-address" hidden>Copy Address</button>
       </div>
       <div class="card">
         <h3>🗓️ When</h3>
-        <p class="big-fact" id="when-text"><span class="placeholder">5 days in September — dates TBD</span></p>
-        <p>Check-in is <strong>4:00 PM Thursday</strong>. Do not arrive at 9 AM and stand in the driveway. Or do — the neighbors should get used to us early.</p>
+        <p class="big-fact" id="when-text"><strong>Thu Sept 24 to Sun Sept 27</strong> (4 days, 3 nights)</p>
+        <p>Check-in is <strong>4:00 PM Thursday</strong>. Do not arrive at 9 AM and stand in the driveway. Or do — the neighbors should get used to us early. Early arrival does not mean early check-in unless the host confirms it.</p>
+        <p><strong>Checkout:</strong> TBD (confirming with host)</p>
+      </div>
+      <div class="card">
+        <h3>✈️ Getting There</h3>
+        <p>Closest airport is <strong>Wilmington (ILM)</strong>, about 15 minutes from the house. RDU (Raleigh-Durham) works too, just plan on 2 to 2.5 hours down I-40.</p>
+        <p>Flying into ILM and need a ride? Tell Steve in the group chat.</p>
       </div>
       <div class="card">
         <h3>🎒 What to Bring</h3>
         <ul>
-          <li><strong>An 80s beach outfit.</strong> Neon, short shorts, aviators, tank tops with objectionable slogans. Commit to the bit.</li>
           <li>Golf clubs (if you're playing Friday)</li>
           <li>Swimsuit, sunscreen, sandals</li>
           <li>Cash/Venmo for groceries, green fees &amp; dinner</li>
@@ -302,7 +324,8 @@
       </div>
       <div class="card">
         <h3>🛒 Supplies Run</h3>
-        <p>First official activity Thursday: a grocery run that is legally described as "groceries" but is, statistically speaking, beer. If you have requests, get them on the spreadsheet before we go.</p>
+        <p>First official activity Thursday: a grocery run that is legally described as "groceries" but is, statistically speaking, beer. The run happens Thursday before the 4:00 PM check-in. If you have requests, get them on the spreadsheet before we go.</p>
+        <p>Rough targets: <strong>12 to 16 cases of beer</strong>, 15 to 20 frozen pizzas, ice, Solo cups, trash bags, and hydration (water and electrolytes, per the Don't Die clause).</p>
         <a class="btn" href="https://docs.google.com/spreadsheets/d/16d2olPyLYPfXZpBWFHFiUQC14JZ9CVqBfT-_YxTjlzo/edit" target="_blank" rel="noopener">The Sacred Spreadsheet</a>
       </div>
     </div>
@@ -315,29 +338,34 @@
     <p class="blurb">"Roughly" is doing a lot of work in that sentence. Times are vibes. The beach is always open.</p>
     <div class="grid-2">
       <div class="card day">
-        <h3>Thursday — Arrival Day</h3>
+        <h3>Thursday, Sept 24 — Arrival Day</h3>
         <div class="event"><span class="emoji">🚗</span><span>Everyone rolls in</span></div>
         <div class="event"><span class="emoji">🛒</span><span>Grocery shop (aka beer)</span></div>
+        <div class="event"><span class="emoji">✈️</span><span>Jorge airport pickup at ILM (2:44 PM)</span></div>
         <div class="event"><span class="emoji">🔑</span><span>Check-in at 4:00 PM</span></div>
         <div class="event"><span class="emoji">🎉</span><span>Party. That's it. That's the agenda item.</span></div>
       </div>
       <div class="card day">
-        <h3>Friday — Golf Day</h3>
+        <h3>Friday, Sept 25 — Golf Day</h3>
         <div class="event"><span class="emoji">⛳</span><span>Golf (see the Power Rankings below and place your bets)</span></div>
         <div class="event"><span class="emoji">🏖️</span><span>Beach</span></div>
         <div class="event"><span class="emoji">🍽️</span><span>Likely group dinner night — Whitmore leaves Saturday morning and we refuse to feed him a farewell breakfast instead</span></div>
+        <div class="event"><span class="emoji">🕶️</span><span>80s Beach fit night. The theme is mandatory all weekend, Friday is peak effort.</span></div>
       </div>
       <div class="card day">
-        <h3>Saturday — Beach Day</h3>
+        <h3>Saturday, Sept 26 — Beach Day</h3>
         <div class="event"><span class="emoji">🏖️</span><span>Beach, but with more commitment</span></div>
         <div class="event"><span class="emoji">🏈</span><span>College Football Pick 'Em — bragging rights on the line</span></div>
-        <div class="event"><span class="emoji">🏆</span><span>Games tournament continues (see below)</span></div>
+        <div class="event"><span class="emoji">🏆</span><span>Lawn games: putter ball, flip cup, beer pong, cornhole</span></div>
+        <div class="event"><span class="emoji">🏎️</span><span>Mario Kart 64, tokens on the line</span></div>
       </div>
       <div class="card day">
-        <h3>Sunday — The Reckoning</h3>
+        <h3>Sunday, Sept 27 — The Reckoning</h3>
         <div class="event"><span class="emoji">🧮</span><span>Count the tokens, crown the champions</span></div>
-        <div class="event"><span class="emoji">🧹</span><span>Make the Airbnb look like nothing happened</span></div>
+        <div class="event"><span class="emoji">✈️</span><span>Jorge ILM drop-off, leaving the house by ~10:30 AM (AA flight at 12:59 PM)</span></div>
+        <div class="event"><span class="emoji">🧹</span><span>Make the Vrbo look like nothing happened</span></div>
         <div class="event"><span class="emoji">👋</span><span>Emotional goodbyes, firm handshakes, denial about Monday</span></div>
+        <div class="event"><span class="emoji">🛫</span><span>Flying out Sunday? Post your flight time in the group chat so we can plan rides and cleanup.</span></div>
       </div>
     </div>
   </section>
@@ -348,11 +376,11 @@
     <h2>The Games</h2>
     <p class="blurb">Scoring system: <strong>1 token per win. All tokens are equal.</strong> Tokens get counted at the end of the weekend and the winning team receives glory, which is non-transferable and has no cash value.</p>
     <div class="grid-3">
-      <div class="card"><h3>⛳ Golf</h3><p>Friday. The main event for the sickos who brought clubs. Rankings below are official and legally binding.</p></div>
+      <div class="card"><h3>⛳ Golf</h3><p>Friday. The main event for the sickos who brought clubs. Rankings below are official and legally binding. The size of your drive matters here and nowhere else.</p></div>
       <div class="card"><h3>🥅 Putter Ball</h3><p>Justin's domain (Robert subs in if we need two). Like beer pong and mini golf had a child neither claims.</p></div>
       <div class="card"><h3>🥤 Flip Cup</h3><p>Teams and bracket drawn from a hat, which is the fairest legal system humanity has produced.</p></div>
       <div class="card"><h3>🏓 Beer Pong</h3><p>Also hat-drawn teams and bracket. House rules will be argued about for a minimum of 25 minutes before game one.</p></div>
-      <div class="card"><h3>🌽 Cornhole</h3><p>Boards supplied by Robert &amp; Jamison. Bags fly, friendships end.</p></div>
+      <div class="card"><h3>🌽 Cornhole</h3><p>Boards supplied by Robert &amp; Jamison. Bags fly, friendships end. Yes, it is called cornhole. No, we are not renaming it.</p></div>
       <div class="card"><h3>🏎️ Mario Kart 64</h3><p>Todd brings the N64. Robert &amp; Justin bring controllers. Rainbow Road settles all outstanding disputes.</p></div>
       <div class="card"><h3>🏈 CFB Pick 'Em</h3><p>Saturday. Pick college football winners. Whoever loses had "a system."</p></div>
     </div>
@@ -362,23 +390,23 @@
   <section id="golf">
     <div class="kicker">100% objective, 0% disputed</div>
     <h2>Golf Power Rankings</h2>
-    <p class="blurb">Straight from the spreadsheet. Rankings were assigned by a rigorous scientific process (someone typed numbers). Unranked golfers are wildcards and therefore dangerous.</p>
+    <p class="blurb">Straight from the spreadsheet. Unranked golfers are wildcards.</p>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Rank</th><th>Golfer</th><th>Scouting Report</th></tr></thead>
+        <thead><tr><th>Rank</th><th>Golfer</th></tr></thead>
         <tbody>
-          <tr class="rank-1"><td>1</td><td>Todd</td><td class="trash">"fuck you todd it's true" — the spreadsheet, verbatim</td></tr>
-          <tr><td>2</td><td>Bernie</td><td>Quiet. Consistent. Terrifying.</td></tr>
-          <tr><td>3</td><td>Kirk</td><td>Podium threat, handshake enthusiast</td></tr>
-          <tr><td>9</td><td>Jamison</td><td>Brings cornhole boards, brings mid golf</td></tr>
-          <tr><td>10</td><td>Robert</td><td>Better at supplying equipment than using it</td></tr>
-          <tr><td>11</td><td>Justin</td><td>The groom. Let him win nothing. He'd want it that way.</td></tr>
-          <tr><td>12</td><td>Zac</td><td>Ranked 12th out of 12 ranked golfers. Statistically our floor.</td></tr>
-          <tr><td>—</td><td>Eric Witdabigdick</td><td>Name entered into spreadsheet exactly like that. We have questions.</td></tr>
-          <tr><td>—</td><td>Marci</td><td>Entered in ALL CAPS, which suggests confidence</td></tr>
-          <tr><td>—</td><td>Chan</td><td>Unranked. Unknowable. Unbothered.</td></tr>
-          <tr><td>—</td><td>Roman</td><td>Mystery box contestant</td></tr>
-          <tr><td>—</td><td>Phil C</td><td>The C stands for "could go either way"</td></tr>
+          <tr class="rank-1"><td>1</td><td>Todd</td></tr>
+          <tr><td>2</td><td>Bernie</td></tr>
+          <tr><td>3</td><td>Kirk</td></tr>
+          <tr><td>9</td><td>Jamison</td></tr>
+          <tr><td>10</td><td>Robert</td></tr>
+          <tr><td>11</td><td>Justin</td></tr>
+          <tr><td>12</td><td>Zac</td></tr>
+          <tr><td>—</td><td>Eric Witdabigdick</td></tr>
+          <tr><td>—</td><td>Marci</td></tr>
+          <tr><td>—</td><td>Chan</td></tr>
+          <tr><td>—</td><td>Roman</td></tr>
+          <tr><td>—</td><td>Phil C</td></tr>
         </tbody>
       </table>
     </div>
@@ -433,6 +461,18 @@
     <div class="kicker">Answers to inevitable questions</div>
     <h2>FAQ</h2>
     <details>
+      <summary>What are the dates?</summary>
+      <p>Thursday, Sept 24 to Sunday, Sept 27, 2026. Four days, three nights, zero excuses.</p>
+    </details>
+    <details>
+      <summary>Where do I fly into?</summary>
+      <p>ILM (Wilmington) is closest, about 15 minutes from the house. RDU works too, but plan on 2 to 2.5 hours of driving down I-40.</p>
+    </details>
+    <details>
+      <summary>What time can I get in?</summary>
+      <p>4:00 PM Thursday. Not before. We asked.</p>
+    </details>
+    <details>
       <summary>Do I really have to dress 80s Beach?</summary>
       <p>Yes. The theme was ratified in the spreadsheet, and the spreadsheet is our constitution. Think Miami Vice lifeguard, off-duty Hulk Hogan, or a man who owns exactly one pair of sunglasses and they're heart-shaped. Effort will be noticed. So will its absence.</p>
     </details>
@@ -453,6 +493,10 @@
       <p>Brother, this is a bachelor party.</p>
     </details>
     <details>
+      <summary>What's with the eggplant menu button?</summary>
+      <p>You know exactly what it is. Tap it.</p>
+    </details>
+    <details>
       <summary>What happens at the bachelor party...</summary>
       <p>...gets recorded on the scoreboard, because tokens must be counted. Everything else stays in Wilmington.</p>
     </details>
@@ -469,21 +513,20 @@
 
 <script>
   // ====== EDIT THESE ======
-  // Set once the dates and Airbnb are locked in:
-  const PARTY_START = null;              // e.g. '2026-09-17T16:00:00-04:00' (check-in Thursday 4 PM)
-  const PARTY_LABEL = null;              // e.g. 'September 17–21, 2026'
+  // Dates and the Vrbo are locked in:
+  const PARTY_START = '2026-09-24T16:00:00-04:00'; // check-in Thursday 4 PM Eastern
+  const PARTY_LABEL = 'Thursday, Sept 24 to Sunday, Sept 27, 2026';
   const AIRBNB_ADDRESS = '213 South Lumina Ave, Wrightsville Beach, NC 28480';
   // ========================
 
   if (PARTY_LABEL) {
     document.getElementById('date-line').textContent = PARTY_LABEL;
-    document.getElementById('when-text').innerHTML = '<strong>' + PARTY_LABEL + '</strong>';
   }
 
   if (AIRBNB_ADDRESS) {
     document.getElementById('address-text').textContent = AIRBNB_ADDRESS;
     document.getElementById('maps-link').href =
-      'https://www.google.com/maps/search/' + encodeURIComponent(AIRBNB_ADDRESS);
+      'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(AIRBNB_ADDRESS);
     const copyBtn = document.getElementById('copy-address');
     copyBtn.hidden = false;
     copyBtn.addEventListener('click', async () => {
@@ -501,7 +544,7 @@
     const tick = () => {
       const diff = target - Date.now();
       if (diff <= 0) {
-        el.innerHTML = '<div class="count-box"><div class="num">🍻</div><div class="label">IT\'S HAPPENING</div></div>';
+        el.innerHTML = '<div class="count-box"><div class="num">🍻</div><div class="label">WE\'RE HERE. GOOD LUCK, HAVE FUN, DON\'T DIE.</div></div>';
         return;
       }
       document.getElementById('cd-days').textContent = Math.floor(diff / 864e5);
@@ -511,6 +554,22 @@
       setTimeout(tick, 1000);
     };
     tick();
+  }
+
+  // ====== MOBILE NAV ======
+  {
+    const burger = document.getElementById('navBurger');
+    const links = document.getElementById('navLinks');
+    burger.addEventListener('click', () => {
+      const open = links.classList.toggle('open');
+      burger.setAttribute('aria-expanded', open);
+    });
+    links.addEventListener('click', e => {
+      if (e.target.tagName === 'A') {
+        links.classList.remove('open');
+        burger.setAttribute('aria-expanded', 'false');
+      }
+    });
   }
 
   // ====== WACKY TITLE: per-letter neon wave ======
