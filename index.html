@@ -89,6 +89,7 @@
 
   /* countdown */
   .countdown { display: flex; gap: 0.7rem; margin-top: 1.6rem; flex-wrap: wrap; justify-content: center; }
+  .countdown[hidden] { display: none; }
   .count-box {
     background: rgba(13, 2, 31, 0.65); border: 1px solid var(--border); border-radius: 12px;
     padding: 0.7rem 0.9rem; min-width: 74px;
@@ -203,6 +204,30 @@
     font-weight: 800; color: var(--deep); font-size: 0.85rem; letter-spacing: 0.06em;
   }
   @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* ---------- WACKY TITLE ---------- */
+  .wacky-title {
+    font-family: 'Righteous', cursive;
+    font-size: clamp(1.5rem, 6.5vw, 2.8rem);
+    letter-spacing: 0.05em;
+    line-height: 1.25;
+    margin: 1rem 0 0.3rem;
+    animation: hueshift 8s linear infinite;
+  }
+  .wacky-title .w { display: inline-block; white-space: nowrap; }
+  .wacky-title .l {
+    display: inline-block;
+    text-shadow: 0 0 14px currentColor;
+    animation: wackybob 1.6s ease-in-out calc(var(--i) * -0.09s) infinite;
+  }
+  @keyframes wackybob {
+    0%, 100% { transform: translateY(0) rotate(-5deg) scale(1); }
+    50% { transform: translateY(-0.32em) rotate(5deg) scale(1.08); }
+  }
+  @keyframes hueshift { to { filter: hue-rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    .wacky-title, .wacky-title .l { animation: none; }
+  }
 </style>
 </head>
 <body>
@@ -223,7 +248,8 @@
 <header id="top">
   <div class="sun" aria-hidden="true"></div>
   <h1>BEER<br>BEACH BALLS</h1>
-  <div class="subtitle">Justin's Bachelor Party · Wilmington, NC</div>
+  <div class="wacky-title" id="wackyTitle" aria-label="Justin's Bachelor Party">JUSTIN'S BACHELOR PARTY</div>
+  <div class="subtitle">Wilmington, NC</div>
   <div class="motto">Good Luck · Have Fun · Don't Die</div>
   <div class="hero-meta">
     <strong id="date-line">September 2026 · exact dates dropping soon</strong><br>
@@ -485,6 +511,80 @@
       setTimeout(tick, 1000);
     };
     tick();
+  }
+
+  // ====== WACKY TITLE: per-letter neon wave ======
+  {
+    const el = document.getElementById('wackyTitle');
+    const palette = ['#ff2d95', '#ffe600', '#00e5ff', '#ff9e00'];
+    let i = 0;
+    el.innerHTML = el.textContent.split(' ').map(word =>
+      '<span class="w">' + [...word].map(ch =>
+        `<span class="l" style="--i:${i}; color:${palette[i++ % palette.length]}">${ch}</span>`
+      ).join('') + '</span>'
+    ).join(' ');
+  }
+</script>
+
+<!-- ====== BOUNCING BEACH BALL (p5.js) ====== -->
+<script src="https://cdn.jsdelivr.net/npm/p5@1.11.3/lib/p5.min.js"></script>
+<script>
+  if (window.p5 && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    new p5(p => {
+      const PANELS = ['#ff2d95', '#ffe600', '#00e5ff', '#ff9e00', '#ffffff', '#b14aff'];
+      let x, y, vx, vy, angle = 0, squash = 0, R;
+
+      p.setup = () => {
+        const c = p.createCanvas(p.windowWidth, p.windowHeight);
+        c.style('position', 'fixed');
+        c.style('top', '0');
+        c.style('left', '0');
+        c.style('z-index', '50');       /* floats over the page, under the nav */
+        c.style('pointer-events', 'none'); /* never blocks taps */
+        R = Math.min(46, p.width * 0.09);
+        x = p.random(R, p.width - R);
+        y = p.random(R, p.height - R);
+        vx = 3.1 * (p.random() < 0.5 ? -1 : 1);
+        vy = 2.4 * (p.random() < 0.5 ? -1 : 1);
+      };
+
+      p.windowResized = () => {
+        p.resizeCanvas(p.windowWidth, p.windowHeight);
+        R = Math.min(46, p.width * 0.09);
+        x = p.constrain(x, R, p.width - R);
+        y = p.constrain(y, R, p.height - R);
+      };
+
+      p.draw = () => {
+        p.clear();
+        const dt = Math.min(p.deltaTime, 50) / 16.667;
+        x += vx * dt;
+        y += vy * dt;
+        angle += vx * 0.012 * dt;
+        if (x < R) { x = R; vx = -vx; squash = 1; }
+        if (x > p.width - R) { x = p.width - R; vx = -vx; squash = 1; }
+        if (y < R) { y = R; vy = -vy; squash = 1; }
+        if (y > p.height - R) { y = p.height - R; vy = -vy; squash = 1; }
+        squash = Math.max(0, squash - 0.06 * dt);
+
+        p.push();
+        p.translate(x, y);
+        p.rotate(angle);
+        p.scale(1 + 0.16 * squash, 1 - 0.16 * squash);
+        p.noStroke();
+        for (let s = 0; s < 6; s++) {
+          p.fill(PANELS[s]);
+          p.arc(0, 0, R * 2, R * 2, s * p.PI / 3, (s + 1) * p.PI / 3, p.PIE);
+        }
+        p.fill(255);
+        p.circle(0, 0, R * 0.42);
+        p.noFill();
+        p.stroke(255, 255, 255, 140);
+        p.strokeWeight(2);
+        p.circle(0, 0, R * 2);
+        p.pop();
+      };
+    });
   }
 </script>
 
