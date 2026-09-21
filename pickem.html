@@ -264,7 +264,7 @@ const GAMES = [
 
 /* ===================================================== */
 const N = GAMES.length;
-const STORE_KEY = 'bbb_pickem_v1';
+const STORE_KEY = 'bbb_pickem_v2'; // bumped 9/21 to wipe Steve & Justin's test entries on every device
 const byId = Object.fromEntries(GAMES.map(g => [g.id, g]));
 let state = { name:'', order: GAMES.map(g => g.id), picks:{}, submittedAt:null };
 
