@@ -550,7 +550,12 @@
   if (window.p5 && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
     new p5(p => {
       const PANELS = ['#ff2d95', '#ffe600', '#00e5ff', '#ff9e00', '#ffffff', '#b14aff'];
+      const EMOJIS = ['🍺', '🏈', '🍕', '⛳', '🌭', '🍻', '🦀', '🎉', '💀', '🦩', '🛟', '🍆'];
       let x, y, vx, vy, angle = 0, squash = 0, R;
+      let emojiIdx = -1; // -1 = classic beach ball; every grab advances to the next emoji
+      let dragging = false, offX = 0, offY = 0, trail = [], suppressClick = false;
+
+      const overBall = (px, py) => (px - x) * (px - x) + (py - y) * (py - y) <= R * R * 1.44;
 
       p.setup = () => {
         const c = p.createCanvas(p.windowWidth, p.windowHeight);
@@ -558,7 +563,7 @@
         c.style('top', '0');
         c.style('left', '0');
         c.style('z-index', '50');       /* floats over the page, under the nav */
-        c.style('pointer-events', 'none'); /* never blocks taps */
+        c.style('pointer-events', 'none'); /* page stays tappable; grabs are handled on window */
         R = Math.min(46, p.width * 0.09);
         x = p.random(R, p.width - R);
         y = p.random(R, p.height - R);
@@ -576,32 +581,111 @@
       p.draw = () => {
         p.clear();
         const dt = Math.min(p.deltaTime, 50) / 16.667;
-        x += vx * dt;
-        y += vy * dt;
-        angle += vx * 0.012 * dt;
-        if (x < R) { x = R; vx = -vx; squash = 1; }
-        if (x > p.width - R) { x = p.width - R; vx = -vx; squash = 1; }
-        if (y < R) { y = R; vy = -vy; squash = 1; }
-        if (y > p.height - R) { y = p.height - R; vy = -vy; squash = 1; }
+        if (!dragging) {
+          x += vx * dt;
+          y += vy * dt;
+          angle += vx * 0.012 * dt;
+          if (x < R) { x = R; vx = -vx; squash = 1; }
+          if (x > p.width - R) { x = p.width - R; vx = -vx; squash = 1; }
+          if (y < R) { y = R; vy = -vy; squash = 1; }
+          if (y > p.height - R) { y = p.height - R; vy = -vy; squash = 1; }
+          /* flings decay back to cruising speed */
+          if (Math.hypot(vx, vy) > 4.5) {
+            const f = Math.pow(0.99, dt);
+            vx *= f; vy *= f;
+          }
+        }
         squash = Math.max(0, squash - 0.06 * dt);
 
         p.push();
         p.translate(x, y);
         p.rotate(angle);
         p.scale(1 + 0.16 * squash, 1 - 0.16 * squash);
-        p.noStroke();
-        for (let s = 0; s < 6; s++) {
-          p.fill(PANELS[s]);
-          p.arc(0, 0, R * 2, R * 2, s * p.PI / 3, (s + 1) * p.PI / 3, p.PIE);
+        if (emojiIdx >= 0) {
+          p.textAlign(p.CENTER, p.CENTER);
+          p.textSize(R * 1.9);
+          p.text(EMOJIS[emojiIdx], 0, R * 0.08);
+        } else {
+          p.noStroke();
+          for (let s = 0; s < 6; s++) {
+            p.fill(PANELS[s]);
+            p.arc(0, 0, R * 2, R * 2, s * p.PI / 3, (s + 1) * p.PI / 3, p.PIE);
+          }
+          p.fill(255);
+          p.circle(0, 0, R * 0.42);
+          p.noFill();
+          p.stroke(255, 255, 255, 140);
+          p.strokeWeight(2);
+          p.circle(0, 0, R * 2);
         }
-        p.fill(255);
-        p.circle(0, 0, R * 0.42);
-        p.noFill();
-        p.stroke(255, 255, 255, 140);
-        p.strokeWeight(2);
-        p.circle(0, 0, R * 2);
         p.pop();
       };
+
+      /* ---- grab, drag, fling ---- */
+      window.addEventListener('pointerdown', e => {
+        if (!overBall(e.clientX, e.clientY)) return;
+        dragging = true;
+        suppressClick = true;
+        emojiIdx = (emojiIdx + 1) % EMOJIS.length;
+        offX = e.clientX - x;
+        offY = e.clientY - y;
+        vx = 0; vy = 0; squash = 1;
+        trail = [[e.clientX, e.clientY, performance.now()]];
+        document.body.style.cursor = 'grabbing';
+        e.preventDefault();
+        e.stopPropagation();
+      }, { capture: true });
+
+      window.addEventListener('pointermove', e => {
+        if (dragging) {
+          const nx = p.constrain(e.clientX - offX, R, p.width - R);
+          angle += (nx - x) * 0.012;
+          x = nx;
+          y = p.constrain(e.clientY - offY, R, p.height - R);
+          trail.push([e.clientX, e.clientY, performance.now()]);
+          if (trail.length > 6) trail.shift();
+        } else if (e.pointerType === 'mouse') {
+          document.body.style.cursor = overBall(e.clientX, e.clientY) ? 'grab' : '';
+        }
+      }, { capture: true });
+
+      /* stop the page scrolling while a finger is dragging the ball */
+      window.addEventListener('touchmove', e => {
+        if (dragging) e.preventDefault();
+      }, { capture: true, passive: false });
+
+      const release = e => {
+        if (!dragging) return;
+        dragging = false;
+        document.body.style.cursor = '';
+        const now = performance.now();
+        const old = trail.find(s => now - s[2] <= 120) || trail[0];
+        const ms = Math.max(now - old[2], 16);
+        let fvx = (e.clientX - old[0]) / ms * 16.67;
+        let fvy = (e.clientY - old[1]) / ms * 16.67;
+        const sp = Math.hypot(fvx, fvy);
+        const MAX = 38;
+        if (sp > MAX) { fvx *= MAX / sp; fvy *= MAX / sp; }
+        if (sp < 1.5) {
+          fvx = 3.1 * (Math.random() < 0.5 ? -1 : 1);
+          fvy = 2.4 * (Math.random() < 0.5 ? -1 : 1);
+        }
+        vx = fvx; vy = fvy;
+      };
+      window.addEventListener('pointerup', release, { capture: true });
+      window.addEventListener('pointercancel', release, { capture: true });
+
+      /* a grab shouldn't also click whatever is under the ball */
+      window.addEventListener('click', e => {
+        if (suppressClick) {
+          suppressClick = false;
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }, { capture: true });
+
+      /* debug hook for automated checks */
+      window.__bbbBall = { get state() { return { x, y, R, emojiIdx, vx, vy, dragging }; } };
     });
   }
 </script>
