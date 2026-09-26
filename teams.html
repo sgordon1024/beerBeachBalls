@@ -174,7 +174,7 @@
 <div class="toast" id="toast"></div>
 <div class="modal" id="editModal" hidden><div class="sheet" id="editSheet"></div></div>
 
-<script src="teams.js?v=1456"></script>
+<script src="teams.js?v=1505"></script>
 <script>
 const ME_KEY = 'bbb_teams_me', MIN_KEY = 'bbb_teams_min';
 const store = { get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
@@ -304,7 +304,9 @@ async function submitResult() {
 
 /* ---------- Brackets ---------- */
 const BGAMES = Teams.GAMES.filter(g => g.bracket);
-let bGame = BGAMES[0].id;
+// Remember the open bracket tab in the address (#corn), so a refresh stays put, even in private browsing
+const hashGame = location.hash.replace('#', '');
+let bGame = BGAMES.some(g => g.id === hashGame) ? hashGame : BGAMES[0].id;
 function renderBrackets() {
   const el = document.getElementById('brackets');
   const tabs = BGAMES.map(g => {
@@ -341,7 +343,7 @@ function renderBrackets() {
       <div class="bnote"><span>${br.seeds.length} teams · random draw${br.by ? ' · started by ' + esc(br.by) : ''}</span><button class="link" id="restartB">Restart / reshuffle</button></div>`;
   }
   el.innerHTML = `<div class="btabs">${tabs}</div>${body}`;
-  el.querySelectorAll('[data-bg]').forEach(b => b.addEventListener('click', () => { bGame = b.dataset.bg; renderBrackets(); }));
+  el.querySelectorAll('[data-bg]').forEach(b => b.addEventListener('click', () => { bGame = b.dataset.bg; history.replaceState(null, '', '#' + bGame); renderBrackets(); }));
   const start = document.getElementById('startB'); if (start) start.addEventListener('click', () => startBracket(false));
   const restart = document.getElementById('restartB'); if (restart) restart.addEventListener('click', () => startBracket(true));
   el.querySelectorAll('.match.ready .slot[data-t]').forEach(b => b.addEventListener('click', () => pickWinner(b.dataset.m, +b.dataset.t)));
