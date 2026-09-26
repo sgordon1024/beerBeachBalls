@@ -172,7 +172,7 @@
 <div class="toast" id="toast"></div>
 <div class="modal" id="editModal" hidden><div class="sheet" id="editSheet"></div></div>
 
-<script src="teams.js?v=1447"></script>
+<script src="teams.js?v=1452"></script>
 <script>
 const ME_KEY = 'bbb_teams_me', MIN_KEY = 'bbb_teams_min';
 const store = { get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
@@ -332,7 +332,7 @@ function renderBrackets() {
       const mine = me && (m.a === me.num || m.b === me.num);
       if (m.bye) return `<div class="match"><div class="slot win"><span class="nm">${L(m.a)}</span></div><div class="mfoot"><span>bye</span></div></div>`;
       return `<div class="match${isReady ? ' ready' : ''}${mine ? ' mine' : ''}">${slot(m, m.a)}${slot(m, m.b)}
-        ${m.winner ? `<div class="mfoot"><span>${esc(m.score || 'final')}</span>${m.rid ? `<span><button class="undo" data-bedit="${m.rid}" title="Edit">✏️</button><button class="undo" data-undo="${m.rid}" title="Undo">✕</button></span>` : ''}</div>` : ''}</div>`;
+        ${m.winner ? `<div class="mfoot"><span>${esc(m.score || 'final')}</span>${m.rid ? `<span><button class="undo" data-bedit="${m.rid}" title="Edit">✏️</button><button class="undo" data-undo="${m.rid}" title="Delete">✕</button></span>` : ''}</div>` : ''}</div>`;
     }).join('')}</div></div>`).join('');
     body = `${br.champion ? `<div class="champ">👑 ${L(br.champion)} 👑</div>` : `<div class="tap-hint">Green = ready to play. When it's done, tap the winner.</div>`}
       <div class="bracket"><div class="rounds">${cols}</div></div>
@@ -345,7 +345,7 @@ function renderBrackets() {
   el.querySelectorAll('.match.ready .slot[data-t]').forEach(b => b.addEventListener('click', () => pickWinner(b.dataset.m, +b.dataset.t)));
   el.querySelectorAll('[data-bedit]').forEach(b => b.addEventListener('click', () => openEditor(b.dataset.bedit)));
   el.querySelectorAll('[data-undo]').forEach(b => b.addEventListener('click', async () => {
-    if (!confirm('Undo this result? Later rounds that depended on it reset too.')) return;
+    if (!askCode('Delete this result? Later rounds that depended on it reset too.')) return;
     try { await Teams.send({ t: 'void', rid: b.dataset.undo, by: me ? me.name : '' }); toast('Undone'); } catch (e) { toast('Couldn’t undo. Try again'); }
   }));
 }
@@ -396,12 +396,12 @@ function renderFeed() {
       <span class="res-body"><b>${esc(Teams.label(r.winner))}</b> beat ${r.losers.map(n => esc(Teams.label(n))).join(', ')}
         <span class="res-meta">${r.bid ? '🏆 bracket · ' : ''}${esc(g.name)}${r.score ? ' · ' + esc(r.score) : ''} · ${timeStr(r.time)}${r.by ? ' · logged by ' + esc(r.by) : ''}${r.edited ? ' · ✏️ edited' + (r.editedBy ? ' by ' + esc(r.editedBy) : '') : ''}</span></span>
       <button class="undo edit" data-edit="${esc(r.rid)}" title="Edit">✏️</button>
-      <button class="undo" data-rid="${esc(r.rid)}" title="Undo">✕</button>
+      <button class="undo" data-rid="${esc(r.rid)}" title="Delete">✕</button>
     </div>`;
   }).join('') + (items.length > 40 ? `<div class="empty">+ ${items.length - 40} older</div>` : '');
   el.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openEditor(b.dataset.edit)));
   el.querySelectorAll('.undo[data-rid]').forEach(b => b.addEventListener('click', async () => {
-    if (!confirm('Remove this game from the scoreboard?')) return;
+    if (!askCode('Delete this game from the scoreboard?')) return;
     try { await Teams.send({ t: 'void', rid: b.dataset.rid, by: me ? me.name : '' }); toast('Removed'); } catch (e) { toast('Couldn’t remove. Try again'); }
   }));
 }
@@ -431,6 +431,15 @@ function renderAll() {
   if (!(typing && document.getElementById('me').contains(a))) renderMe();
   if (!(typing && document.getElementById('logCard').contains(a))) renderLog();
   renderBrackets(); renderStandings(); renderFeed(); renderTeams();
+}
+
+/* ---------- Deleting needs a passcode, so nobody does it by accident ---------- */
+const DELETE_CODE = '5555';
+function askCode(msg) {
+  const v = prompt(msg + '\n\nEnter the passcode to delete:');
+  if (v === null) return false;
+  if (v.trim() !== DELETE_CODE) { toast('Wrong passcode. Nothing deleted'); return false; }
+  return true;
 }
 
 /* ---------- Edit a logged game ---------- */
