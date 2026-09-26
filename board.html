@@ -47,7 +47,7 @@
   #standings > * { --h: 6.1cqh; } /* one row's height */
   .row { min-height: 0; overflow: hidden; display: grid; align-items: center; line-height: 1.15;
     grid-template-columns: calc(var(--u) * 3.2) 1fr calc(var(--u) * 11) calc(var(--u) * 5.2) calc(var(--u) * 6.5);
-    gap: calc(var(--u) * 1); padding: 0 calc(var(--u) * 1); border-radius: calc(var(--u) * 0.8);
+    gap: calc(var(--u) * 1); padding: calc(var(--u) * 0.3) calc(var(--u) * 1.8) calc(var(--u) * 0.3) calc(var(--u) * 1.2); border-radius: calc(var(--u) * 0.8);
     background: var(--card); border: 1px solid transparent; transition: transform 0.6s ease; }
   .row.r1 { border-color: var(--yellow); background: rgba(255,230,0,0.08); }
   .row.r2 { border-color: rgba(0,229,255,0.5); }
@@ -102,11 +102,14 @@
   #lawn { flex: 1; min-height: 0; display: grid; grid-template-rows: repeat(var(--n, 6), 1fr); gap: 0.6cqh; container-type: size; align-content: start; }
   #lawn > * { --h: calc(100cqh / var(--n, 6)); }
   .lrow { min-height: 0; overflow: hidden; display: grid; align-items: center; line-height: 1.15;
-    grid-template-columns: calc(var(--u) * 3) 1fr auto calc(var(--u) * 6.5); gap: calc(var(--u) * 1); padding: 0 calc(var(--u) * 1);
+    grid-template-columns: calc(var(--u) * 3) 1fr auto minmax(calc(var(--u) * 6.5), auto); gap: calc(var(--u) * 1.2); padding: calc(var(--u) * 0.2) calc(var(--u) * 1.8) calc(var(--u) * 0.2) calc(var(--u) * 1.2);
     border-radius: calc(var(--u) * 0.8); background: var(--card); max-height: calc(var(--u) * 7); }
   .lrow.r1 { border: 1px solid var(--yellow); background: rgba(255,230,0,0.08); }
+  .lrow .name { font-size: min(calc(var(--u) * 1.7), calc(var(--h) * 0.34)); }
+  .lrow .sub { font-size: min(calc(var(--u) * 1.05), calc(var(--h) * 0.22)); }
+  .lrow .rank { font-size: min(calc(var(--u) * 2), calc(var(--h) * 0.42)); }
   .lrow .rec { font-size: min(calc(var(--u) * 1.3), calc(var(--h) * 0.28)); opacity: 0.7; }
-  .lrow .tok { text-align: right; font-family: 'Righteous', cursive; color: var(--cyan); font-size: min(calc(var(--u) * 2.6), calc(var(--h) * 0.5)); }
+  .lrow .tok { white-space: nowrap; display: flex; align-items: center; justify-content: flex-end; gap: 0.2em; text-align: right; font-family: 'Righteous', cursive; color: var(--cyan); font-size: min(calc(var(--u) * 2.6), calc(var(--h) * 0.5)); }
   .lempty { opacity: 0.6; font-size: calc(var(--u) * 1.4); padding: 1rem 0; }
   #lawnFeed { display: flex; flex-direction: column; gap: calc(var(--u) * 0.35); }
   .lres { font-size: calc(var(--u) * 1.15); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -260,7 +263,7 @@ function renderLawn() {
       <div class="rank">${r.wins ? r.rank : '–'}</div>
       <div class="who"><div class="name">${esc(r.name)}</div><div class="sub">${r.members.map(m => esc(m.name)).join(' & ')}${games ? ' · ' + games : ''}</div></div>
       <div class="rec">${r.wins}-${r.losses}</div>
-      <div class="tok">🪙${r.wins}</div>
+      <div class="tok"><span style="font-size:0.7em">🪙</span>${r.wins}</div>
     </div>`; }).join('') : '<div class="lempty">No teams yet. Sign in at beerbeachballs.com/teams.html</div>';
   const next = Teams.upNext().slice(0, 4);
   const champs = Teams.GAMES.filter(g => g.bracket).map(g => ({ g, br: Teams.bracket(g.id) })).filter(x => x.br && x.br.champion);
