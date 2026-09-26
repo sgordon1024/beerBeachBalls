@@ -136,6 +136,11 @@
   .sheet .note { font-size: 0.78rem; opacity: 0.65; margin-bottom: 0.8rem; }
   .sheet .btnrow { display: flex; gap: 0.6rem; margin-top: 1rem; }
   .sheet .btnrow .primary { flex: 1; }
+  .pickrow { display: flex; align-items: stretch; gap: 0.5rem; }
+  .pickrow .vs { align-self: center; opacity: 0.5; font-weight: 800; font-size: 0.8rem; }
+  .pickteam { flex: 1; min-height: 4.2rem; padding: 0.7rem; border-radius: 12px; background: var(--card); border: 2px solid var(--border);
+    color: #f0eaff; font-family: 'Inter'; font-weight: 800; font-size: 1rem; line-height: 1.2; word-break: break-word; }
+  .pickteam.on { border-color: var(--green); background: rgba(62,224,122,0.16); color: var(--green); box-shadow: 0 0 14px rgba(62,224,122,0.3); }
   .champ { text-align: center; margin: 0.4rem 0 0.8rem; font-family: 'Righteous', cursive; font-size: 1.3rem; color: var(--yellow); text-shadow: 0 0 14px rgba(255,230,0,0.5); }
   .bnote { font-size: 0.75rem; opacity: 0.65; margin-top: 0.6rem; display: flex; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; }
   .tap-hint { font-size: 0.78rem; color: var(--green); margin-bottom: 0.6rem; }
@@ -174,7 +179,7 @@
 <div class="toast" id="toast"></div>
 <div class="modal" id="editModal" hidden><div class="sheet" id="editSheet"></div></div>
 
-<script src="teams.js?v=1505"></script>
+<script src="teams.js?v=1637"></script>
 <script>
 const ME_KEY = 'bbb_teams_me', MIN_KEY = 'bbb_teams_min';
 const store = { get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
@@ -338,7 +343,7 @@ function renderBrackets() {
       return `<div class="match${isReady ? ' ready' : ''}${mine ? ' mine' : ''}">${slot(m, m.a)}${slot(m, m.b)}
         ${m.winner ? `<div class="mfoot"><span>${esc(m.score || 'final')}</span>${m.rid ? `<span><button class="undo" data-bedit="${m.rid}" title="Edit">✏️</button><button class="undo" data-undo="${m.rid}" title="Delete">✕</button></span>` : ''}</div>` : ''}</div>`;
     }).join('')}</div></div>`).join('');
-    body = `${br.champion ? `<div class="champ">👑 ${L(br.champion)} 👑</div>` : `<div class="tap-hint">Green = ready to play. When it's done, tap the winner.</div>`}
+    body = `${br.champion ? `<div class="champ">👑 ${L(br.champion)} 👑</div>` : `<div class="tap-hint">Green = ready to play. When it's done, tap the match and pick who won.</div>`}
       <div class="bracket"><div class="rounds">${cols}</div></div>
       <div class="bnote"><span>${br.seeds.length} teams · random draw${br.by ? ' · started by ' + esc(br.by) : ''}</span><button class="link" id="restartB">Restart / reshuffle</button></div>`;
   }
@@ -362,16 +367,39 @@ async function startBracket(restart) {
   try { await Teams.send({ t: 'bracket', bid: Teams.newRid(), game: bGame, seeds: nums, by: me ? me.name : '' }); toast(`${g.emoji} Bracket drawn`); }
   catch (e) { toast('Couldn’t start. Try again'); }
 }
-async function pickWinner(matchId, winner) {
+/* Tapping a ready match opens a sheet: tap who won, add a score, save. Nothing is saved until you hit Save. */
+let pw = null; // { matchId, bid, a, b, winner, score }
+function pickWinner(matchId, tapped) {
   const br = Teams.bracket(bGame); if (!br) return;
-  const m = br.rounds.flatMap(r => r.matches).find(x => x.id === matchId); if (!m || m.winner) return;
-  const loser = m.a === winner ? m.b : m.a;
-  if (!confirm(`${Teams.label(winner)} beat ${Teams.label(loser)}?`)) return;
-  const score = (prompt('Score? (optional, e.g. 3 cups left)') || '').trim().slice(0, 30);
+  const m = br.rounds.flatMap(r => r.matches).find(x => x.id === matchId); if (!m || m.winner || !m.a || !m.b) return;
+  pw = { matchId, bid: br.bid, round: (br.rounds.find(r => r.matches.includes(m)) || {}).name || '', a: m.a, b: m.b, winner: null, score: '' };
+  document.getElementById('editModal').hidden = false;
+  renderPick();
+}
+function renderPick() {
+  const g = Teams.gameInfo(bGame);
+  const el = document.getElementById('editSheet');
+  const btn = n => `<button class="pickteam${pw.winner === n ? ' on' : ''}" data-pw="${n}">${pw.winner === n ? '🏆 ' : ''}${esc(Teams.label(n))}</button>`;
+  el.innerHTML = `<h3>${g.emoji} ${esc(g.name)} · ${esc(pw.round)}</h3>
+    <div class="note">Who won?</div>
+    <div class="pickrow">${btn(pw.a)}<span class="vs">vs</span>${btn(pw.b)}</div>
+    <label style="margin-top:1rem" for="pwScore">Score <span style="text-transform:none;letter-spacing:0;opacity:.6;font-weight:600">(optional)</span></label>
+    <input id="pwScore" maxlength="30" value="${esc(pw.score)}" placeholder="e.g. 3 cups left, 21-15">
+    <div class="btnrow"><button class="ghost" id="pwCancel">Cancel</button><button class="primary" id="pwSave" ${pw.winner ? '' : 'disabled'}>${pw.winner ? 'SAVE' : 'TAP THE WINNER'}</button></div>`;
+  el.querySelectorAll('[data-pw]').forEach(b => b.addEventListener('click', () => { pw.winner = +b.dataset.pw; renderPick(); }));
+  document.getElementById('pwScore').addEventListener('input', e => { pw.score = e.target.value; });
+  document.getElementById('pwCancel').addEventListener('click', () => { pw = null; closeEditor(); });
+  document.getElementById('pwSave').addEventListener('click', savePick);
+}
+async function savePick() {
+  if (!pw || !pw.winner) return;
+  const loser = pw.winner === pw.a ? pw.b : pw.a;
+  const btn = document.getElementById('pwSave'); btn.disabled = true; btn.textContent = 'SAVING…';
   try {
-    await Teams.send({ t: 'result', rid: Teams.newRid(), game: bGame, winner, losers: [loser], score, by: me ? me.name : '', bid: br.bid, match: matchId });
-    toast(`🪙 ${Teams.label(winner)} advances`);
-  } catch (e) { toast('Couldn’t save. Try again'); }
+    await Teams.send({ t: 'result', rid: Teams.newRid(), game: bGame, winner: pw.winner, losers: [loser], score: pw.score.trim().slice(0, 30), by: me ? me.name : '', bid: pw.bid, match: pw.matchId });
+    toast(`🪙 ${Teams.label(pw.winner)} advances`);
+    pw = null; closeEditor();
+  } catch (e) { btn.disabled = false; btn.textContent = 'SAVE'; toast('Couldn’t save. Try again'); }
 }
 
 /* ---------- Standings, feed, teams ---------- */
@@ -498,7 +526,7 @@ async function saveEdit() {
     closeEditor(); toast('Game updated ✔');
   } catch (e) { btn.disabled = false; btn.textContent = 'SAVE CHANGES'; toast('Couldn’t save. Try again'); }
 }
-document.getElementById('editModal').addEventListener('click', e => { if (e.target.id === 'editModal') closeEditor(); });
+document.getElementById('editModal').addEventListener('click', e => { if (e.target.id === 'editModal') { pw = null; closeEditor(); } });
 
 /* ---------- Actions ---------- */
 async function join() {
