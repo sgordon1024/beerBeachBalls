@@ -427,6 +427,15 @@ if (location.hash === '#leaderboard') showTab('lb');
 const ENTRIES = [
   'BBBCODE|Uncle Iroh|hcu-unt=249@15,nd-pur=87@14,vt-bc=259@13,ou-uga=61@12,tam-lsu=99@11,van-aub=2@10,tlsa-ark=8@9,jmu-odu=256@8,tcu-ucf=2628@7,tex-tenn=251@6,okst-wvu=197@5,ore-usc=30@4,iowa-mich=2294@3,ucla-md=120@2,cnu-sus=216@1',
   'BBBCODE|Hor Hey|vt-bc=259@15,cnu-sus=216@14,nd-pur=2509@13,ucla-md=26@12,tex-tenn=251@11,ou-uga=61@10,iowa-mich=130@9,tcu-ucf=2116@8,van-aub=238@7,jmu-odu=256@6,tam-lsu=245@5,okst-wvu=277@4,ore-usc=2483@3,hcu-unt=249@2,tlsa-ark=8@1',
+  'BBBCODE|TheToddFather|nd-pur=87@15,vt-bc=259@14,tam-lsu=99@13,jmu-odu=256@12,ou-uga=61@11,ore-usc=30@10,tcu-ucf=2628@9,tlsa-ark=8@8,iowa-mich=130@7,van-aub=2@6,tex-tenn=2633@5,ucla-md=120@4,okst-wvu=277@3,hcu-unt=249@2,cnu-sus=216@1',
+  'BBBCODE|Jamison Ford|vt-bc=259@15,van-aub=2@14,nd-pur=87@13,tcu-ucf=2116@12,ou-uga=61@11,jmu-odu=256@10,ucla-md=26@9,ore-usc=30@8,hcu-unt=249@7,tex-tenn=251@6,okst-wvu=197@5,iowa-mich=2294@4,tam-lsu=99@3,cnu-sus=216@2,tlsa-ark=202@1',
+  'BBBCODE|Justin|nd-pur=87@15,hcu-unt=249@14,ou-uga=61@13,vt-bc=259@12,van-aub=2@11,jmu-odu=256@10,iowa-mich=130@9,tex-tenn=251@8,tlsa-ark=8@7,tcu-ucf=2628@6,okst-wvu=197@5,ucla-md=120@4,tam-lsu=99@3,ore-usc=30@2,cnu-sus=3112@1',
+  'BBBCODE|Todd’s submissive cub|cnu-sus=3112@15,vt-bc=259@14,tex-tenn=2633@13,ucla-md=120@12,nd-pur=87@11,ou-uga=61@10,iowa-mich=130@9,tcu-ucf=2628@8,van-aub=2@7,jmu-odu=256@6,okst-wvu=197@5,tam-lsu=245@4,ore-usc=2483@3,hcu-unt=2277@2,tlsa-ark=8@1',
+  'BBBCODE|Roman|nd-pur=87@15,okst-wvu=197@14,vt-bc=259@13,tex-tenn=2633@12,ucla-md=26@11,cnu-sus=3112@10,tam-lsu=99@9,ou-uga=61@8,iowa-mich=2294@7,tcu-ucf=2628@6,van-aub=2@5,jmu-odu=256@4,ore-usc=30@3,hcu-unt=249@2,tlsa-ark=202@1',
+  'BBBCODE|The Lord|nd-pur=87@15,jmu-odu=256@14,ou-uga=61@13,cnu-sus=3112@12,tex-tenn=251@11,ucla-md=26@10,iowa-mich=130@9,vt-bc=259@8,tcu-ucf=2116@7,van-aub=2@6,okst-wvu=277@5,tam-lsu=245@4,ore-usc=2483@3,hcu-unt=249@2,tlsa-ark=8@1',
+  'BBBCODE|Marci|nd-pur=87@15,ou-uga=61@14,tam-lsu=99@13,van-aub=2@12,tex-tenn=251@11,ore-usc=2483@10,iowa-mich=2294@9,tlsa-ark=8@8,jmu-odu=256@7,okst-wvu=277@6,vt-bc=259@5,tcu-ucf=2628@4,ucla-md=26@3,hcu-unt=249@2,cnu-sus=216@1',
+  'BBBCODE|Robert Reed|hcu-unt=249@15,nd-pur=87@14,ou-uga=61@13,ucla-md=120@12,tcu-ucf=2628@11,cnu-sus=3112@10,tex-tenn=251@9,iowa-mich=130@8,van-aub=2@7,ore-usc=2483@6,vt-bc=259@5,tlsa-ark=8@4,jmu-odu=256@3,okst-wvu=277@2,tam-lsu=245@1',
+  'BBBCODE|DiSalvo|nd-pur=87@15,ou-uga=61@14,tex-tenn=251@13,tam-lsu=99@12,jmu-odu=256@11,tlsa-ark=202@10,vt-bc=259@9,tcu-ucf=2116@8,van-aub=2@7,hcu-unt=2277@6,cnu-sus=3112@5,ucla-md=120@4,iowa-mich=130@3,okst-wvu=197@2,ore-usc=2483@1',
 ];
 
 function parseEntry(code) {
