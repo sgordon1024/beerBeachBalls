@@ -137,7 +137,39 @@
     font-size: calc(var(--u) * 1.6); text-shadow: 0 0 calc(var(--u) * 1.2) rgba(255,230,0,0.5); max-width: 22%; line-height: 1.2; }
   .bchamp .crown { font-size: calc(var(--u) * 3.5); display: block; }
 
+  /* Picks overlay */
+  .row { cursor: pointer; }
+  .row:active { background: rgba(255,45,149,0.15); }
+  .pmodal { position: fixed; inset: 0; z-index: 50; background: rgba(5,0,15,0.8); backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center; padding: calc(var(--u) * 2); }
+  .pmodal[hidden] { display: none; }
+  .psheet { width: min(100%, calc(var(--u) * 110)); max-height: 100%; overflow: hidden; display: flex; flex-direction: column;
+    background: #170530; border: 2px solid var(--pink); border-radius: calc(var(--u) * 1.4); padding: calc(var(--u) * 1.6) calc(var(--u) * 2);
+    box-shadow: 0 0 calc(var(--u) * 4) rgba(255,45,149,0.35); }
+  .pkhead { display: flex; justify-content: space-between; align-items: flex-start; gap: 1em; margin-bottom: calc(var(--u) * 1); }
+  .pkname { font-family: 'Righteous', cursive; color: var(--pink); font-size: calc(var(--u) * 3); line-height: 1.1; }
+  .pksub { font-size: calc(var(--u) * 1.2); opacity: 0.7; margin-top: 0.3em; }
+  .pkclose { background: none; border: 1px solid var(--border); color: var(--cyan); border-radius: 99px; width: 2.2em; height: 2.2em;
+    font-size: calc(var(--u) * 1.4); cursor: pointer; flex: 0 0 auto; }
+  .pkgrid { display: grid; grid-template-columns: 1fr 1fr; grid-auto-flow: column; grid-template-rows: repeat(8, auto); gap: calc(var(--u) * 0.5) calc(var(--u) * 1.2); }
+  .pk { display: grid; grid-template-columns: calc(var(--u) * 2.6) calc(var(--u) * 2.4) 1fr auto calc(var(--u) * 4.6); align-items: center; gap: calc(var(--u) * 0.7);
+    background: var(--card); border-radius: calc(var(--u) * 0.7); padding: calc(var(--u) * 0.5) calc(var(--u) * 0.9); border: 1px solid transparent; min-width: 0; }
+  .pk .pp { font-family: 'Righteous', cursive; color: var(--yellow); font-size: calc(var(--u) * 1.8); text-align: center; }
+  .pk img { width: calc(var(--u) * 2.4); height: calc(var(--u) * 2.4); object-fit: contain; }
+  .pk .pt { min-width: 0; line-height: 1.15; }
+  .pk .pt b { display: block; font-size: calc(var(--u) * 1.35); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pk .pt small { display: block; font-size: calc(var(--u) * 1); opacity: 0.6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pk .ps { font-size: calc(var(--u) * 1); opacity: 0.7; white-space: nowrap; }
+  .pk .po { font-size: calc(var(--u) * 1.2); font-weight: 800; text-align: right; white-space: nowrap; }
+  .pk.won { border-color: rgba(62,224,122,0.5); background: rgba(62,224,122,0.1); }
+  .pk.won .pt b { color: var(--green); }
+  .pk.lost { opacity: 0.45; }
+  .pk.lost .pt b { text-decoration: line-through; }
+  .pk.live { border-color: rgba(0,229,255,0.5); }
+  .pk.live .ps { color: var(--green); opacity: 1; font-weight: 700; }
+
   @media (orientation: portrait) {
+    .pkgrid { grid-template-columns: 1fr; grid-auto-flow: row; grid-template-rows: none; }
     :root { --u: min(1.35vw, 0.95vh); }
     main { grid-template-columns: 1fr; grid-template-rows: 1.55fr 1fr; }
     #games { grid-template-columns: 1fr 1fr 1fr; }
@@ -181,8 +213,10 @@
   <span id="wake">Tap anywhere to keep the screen awake</span>
 </footer>
 
-<script src="pool.js?v=1637"></script>
-<script src="teams.js?v=1637"></script>
+<div class="pmodal" id="picksModal" hidden><div class="psheet" id="picksSheet"></div></div>
+
+<script src="pool.js?v=1712"></script>
+<script src="teams.js?v=1712"></script>
 <script>
 const LOCK_TIME = Date.parse('2026-09-26T17:25:00Z'); // keep in sync with pickem.html
 const locked = () => Date.now() >= LOCK_TIME;
@@ -204,7 +238,7 @@ function renderStandings() {
       const d = r.sweat.diff;
       hot = `<span class="hot">🔥 ${r.sweat.pts} on ${esc(short(r.sweat.team, r.sweat.game))} ${d > 0 ? 'up ' + d : d < 0 ? 'down ' + (-d) : 'tied'}</span>`;
     }
-    return `<div class="row${r.pts && r.rank === 1 ? ' r1' : r.pts && r.rank === 2 ? ' r2' : ''}">
+    return `<div class="row${r.pts && r.rank === 1 ? ' r1' : r.pts && r.rank === 2 ? ' r2' : ''}" data-who="${esc(r.name)}">
       <div class="rank">${r.rank}</div>
       <div class="who"><div class="name">${esc(r.name)}</div><div class="sub">${bits.join(' · ')}${bits.length && hot ? ' · ' : ''}${hot}</div></div>
       <div class="odds"><span class="lbl">🏆 ${pct(r.winPct)}</span><div class="bar"><i style="width:${Math.max(1, r.winPct)}%"></i></div></div>
@@ -213,6 +247,53 @@ function renderStandings() {
     </div>`;
   }).join('');
 }
+
+/* ---------- Tap a person to see their picks ---------- */
+let openWho = null, closeTimer = null;
+function renderPicks() {
+  const modal = document.getElementById('picksModal');
+  if (!openWho) { modal.hidden = true; return; }
+  const r = Pool.standings().find(x => x.name === openWho);
+  if (!r) { openWho = null; modal.hidden = true; return; }
+  const G = Pool.games;
+  const items = r.entry.picks.slice().sort((a, b) => b.pts - a.pts).map(p => {
+    const g = byId[p.game], res = G[p.game];
+    const mine = p.team === g.away.tid ? g.away : p.team === g.home.tid ? g.home : null;
+    const opp = mine === g.away ? g.home : g.away;
+    let cls = '', status = g.time, odds = '';
+    if (res && res.winner) { cls = p.team === res.winner ? 'won' : 'lost'; }
+    if (res && res.state !== 'pre') status = `${res.scores[mine ? mine.tid : g.away.tid] ?? ''}-${res.scores[opp.tid] ?? ''} · ${res.detail}`;
+    if (res && !res.winner && mine) odds = Math.round(Pool.pPick(p) * 100) + '%';
+    const live = res && res.state === 'in' ? ' live' : '';
+    return `<div class="pk ${cls}${live}">
+      <span class="pp">${p.pts}</span>
+      ${mine ? `<img src="${logo(mine.tid)}" alt="" onerror="this.style.visibility='hidden'">` : '<span></span>'}
+      <span class="pt"><b>${mine ? esc(mine.name) : 'no pick'}</b><small>over ${esc(opp.name)}</small></span>
+      <span class="ps">${esc(status)}</span>
+      <span class="po">${cls === 'won' ? '✅ +' + p.pts : cls === 'lost' ? '❌' : odds}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('picksSheet').innerHTML = `
+    <div class="pkhead">
+      <div><div class="pkname">${esc(r.name)}</div>
+        <div class="pksub">#${r.rank} · ${r.pts} pts · max ${r.max} · ${Math.round(r.proj)} projected · 🏆 ${pct(r.winPct)} to win · ${r.w}-${r.l} final</div></div>
+      <button class="pkclose" id="pkClose">✕</button>
+    </div>
+    <div class="pkgrid">${items}</div>
+    <div class="pksub" style="margin-top:0.6em;text-align:center">Tap anywhere to close · closes on its own after 30 seconds</div>`;
+  modal.hidden = false;
+}
+function openPicks(name) {
+  if (!locked()) return;
+  openWho = name; renderPicks();
+  clearTimeout(closeTimer); closeTimer = setTimeout(closePicks, 30000);
+}
+function closePicks() { openWho = null; clearTimeout(closeTimer); renderPicks(); }
+document.getElementById('standings').addEventListener('click', e => {
+  const row = e.target.closest('[data-who]'); if (!row) return;
+  e.stopPropagation(); keepAwake(); openPicks(row.dataset.who);
+});
+document.getElementById('picksModal').addEventListener('click', e => { e.stopPropagation(); closePicks(); });
 
 function renderGames() {
   const G = Pool.games;
@@ -249,7 +330,7 @@ function renderMeta() {
   const t = Pool.updatedAt ? Pool.updatedAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '…';
   document.getElementById('summary').textContent = `${Pool.entries.length} entries · ${live} live · ${fin}/${GAMES.length} final · updated ${t}`;
   document.getElementById('lockNote').textContent = locked()
-    ? 'Beerbeachballs pick’em · 15 = most confident'
+    ? 'Tap a name to see their picks · 15 = most confident'
     : 'Picks lock at 1:25 PM. Pick details show up here after lock.';
 }
 
@@ -328,7 +409,7 @@ function tickClock() {
   document.getElementById('clock').textContent = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 }
 
-async function tick() { await Pool.refresh(); renderAll(); }
+async function tick() { await Pool.refresh(); renderAll(); if (openWho) renderPicks(); }
 renderAll(); tickClock();
 tick();
 setInterval(tick, 30000);
