@@ -202,6 +202,10 @@
   .lb-picks .lost .t { opacity: 0.45; text-decoration: line-through; }
   .lb-name { display: flex; flex-direction: column; }
   .lb-stats { display: flex; flex-wrap: wrap; gap: 0.25rem 0.6rem; font-weight: 600; font-size: 0.7rem; opacity: 0.8; margin-top: 0.2rem; }
+  .lb-brh { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.08em; color: var(--cyan); text-align: left; margin: 0.3rem 0 0.4rem; }
+  .lb-br { text-align: left; font-size: 0.85rem; padding: 0.35rem 0; border-top: 1px solid var(--border); }
+  .lb-br span { opacity: 0.55; font-size: 0.75rem; margin-left: 0.3rem; }
+  .lb-brlink { display: block; text-align: left; font-size: 0.78rem; color: var(--cyan); margin: 0.3rem 0 0.8rem; }
   .lb-stats .sweat { color: var(--orange); flex-basis: 100%; }
 
   .toast {
@@ -260,6 +264,7 @@
     </div>
     <div class="lb-card" style="margin-top:1rem">
       <h2>🍻 LAWN GAMES</h2>
+      <div id="lawnBrackets"></div>
       <div id="lawnTable"><p class="lb-updated">Loading…</p></div>
       <div class="lb-rules">🪙 1 token per win · <a href="teams.html" style="color:var(--cyan)">log a game →</a></div>
     </div>
@@ -461,6 +466,14 @@ function renderLawn() {
       <span class="lb-name">${esc(r.name)}<div class="lb-stats"><span>${r.members.map(m => esc(m.name)).join(' & ')}</span>${games ? `<span>${games}</span>` : ''}<span>${r.wins}-${r.losses}</span></div></span>
       <span class="lb-pts"><b>🪙${r.wins}</b></span></summary></div>`; }).join('')
     : '<p class="lb-updated">No teams yet. <a href="teams.html" style="color:var(--cyan)">Sign in with your hat number →</a></p>';
+  // Brackets: champions and what's up next
+  const champs = Teams.GAMES.filter(g => g.bracket).map(g => ({ g, br: Teams.bracket(g.id) })).filter(x => x.br && x.br.champion);
+  const next = Teams.upNext();
+  const L = n => esc(Teams.label(n));
+  const bits = champs.map(x => `<div class="lb-br">${x.g.emoji} 👑 <b style="color:var(--yellow)">${L(x.br.champion)}</b> won ${esc(x.g.name)}</div>`)
+    .concat(next.map(m => `<div class="lb-br">${Teams.gameInfo(m.game).emoji} <b>${L(m.a)}</b> vs <b>${L(m.b)}</b> <span>${esc(m.round)}</span></div>`));
+  document.getElementById('lawnBrackets').innerHTML = bits.length
+    ? `<div class="lb-brh">${next.length ? 'UP NEXT IN THE BRACKETS' : 'BRACKETS'}</div>${bits.join('')}<a href="teams.html#brackets" class="lb-brlink">see full brackets →</a>` : '';
 }
 Teams.onChange(renderLawn);
 Teams.start();

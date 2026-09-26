@@ -98,6 +98,36 @@
   .res-meta { display: block; font-size: 0.72rem; opacity: 0.6; }
   .undo { background: none; color: rgba(255,255,255,0.4); padding: 0.2rem 0.4rem; font-size: 0.9rem; font-family: 'Inter'; }
   .primary:disabled { opacity: 0.45; box-shadow: none; }
+
+  /* Brackets */
+  .btabs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.7rem; }
+  .btab { font-family: 'Inter'; font-weight: 700; font-size: 0.82rem; padding: 0.45rem 0.8rem; border-radius: 999px;
+    background: var(--card); color: #f0eaff; border: 1px solid var(--border); }
+  .btab.on { background: rgba(255,45,149,0.18); border-color: var(--pink); color: #fff; }
+  .btab .st { font-size: 0.7rem; opacity: 0.7; margin-left: 0.25rem; }
+  .bracket { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 0.4rem; }
+  .rounds { display: flex; gap: 0.9rem; min-width: min-content; }
+  .round { display: flex; flex-direction: column; width: 11.5rem; flex: 0 0 auto; }
+  .round h4 { font-family: 'Righteous', cursive; font-weight: 400; color: var(--cyan); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.4rem; }
+  .round .ms { flex: 1; display: flex; flex-direction: column; justify-content: space-around; gap: 0.6rem; }
+  .match { background: var(--card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; position: relative; }
+  .match.ready { border-color: var(--green); box-shadow: 0 0 10px rgba(62,224,122,0.25); }
+  .match.mine { border-color: var(--pink); }
+  .slot { display: flex; align-items: center; gap: 0.4rem; width: 100%; padding: 0.5rem 0.6rem; background: none; border: none; color: #f0eaff;
+    font-family: 'Inter'; font-size: 0.82rem; font-weight: 600; text-align: left; border-radius: 0; min-height: 2.3rem; }
+  .slot + .slot { border-top: 1px solid rgba(255,255,255,0.08); }
+  .slot .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .slot.tbd .nm { opacity: 0.35; font-style: italic; }
+  .slot.win { background: rgba(62,224,122,0.14); color: var(--green); }
+  .slot.win .nm::after { content: ' ✓'; }
+  .slot.lose { opacity: 0.4; text-decoration: line-through; }
+  .match.ready .slot { cursor: pointer; }
+  .match.ready .slot:active { background: rgba(255,45,149,0.2); }
+  .mfoot { display: flex; justify-content: space-between; align-items: center; font-size: 0.68rem; opacity: 0.6; padding: 0.15rem 0.6rem 0.35rem; }
+  .mfoot .undo { font-size: 0.75rem; padding: 0 0.2rem; }
+  .champ { text-align: center; margin: 0.4rem 0 0.8rem; font-family: 'Righteous', cursive; font-size: 1.3rem; color: var(--yellow); text-shadow: 0 0 14px rgba(255,230,0,0.5); }
+  .bnote { font-size: 0.75rem; opacity: 0.65; margin-top: 0.6rem; display: flex; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; }
+  .tap-hint { font-size: 0.78rem; color: var(--green); margin-bottom: 0.6rem; }
 </style>
 </head>
 <body>
@@ -112,7 +142,11 @@
 
   <div id="me"></div>
 
+  <h2 id="bracketsAnchor">🏆 BRACKETS</h2>
+  <div id="brackets"></div>
+
   <h2>🏁 LOG A GAME</h2>
+  <div class="sub" style="text-align:left;margin:-0.4rem 0 0.6rem">For anything outside the brackets. A bracket matchup logged here counts in the bracket too.</div>
   <div class="card" id="logCard"></div>
 
   <h2>🏆 LAWN GAMES STANDINGS</h2>
@@ -256,6 +290,75 @@ async function submitResult() {
   } catch (e) { btn.disabled = false; btn.textContent = 'LOG IT'; toast('Couldn’t save. Try again'); }
 }
 
+/* ---------- Brackets ---------- */
+const BGAMES = Teams.GAMES.filter(g => g.bracket);
+let bGame = BGAMES[0].id;
+function renderBrackets() {
+  const el = document.getElementById('brackets');
+  const tabs = BGAMES.map(g => {
+    const br = Teams.bracket(g.id);
+    const st = !br ? '' : br.champion ? '👑' : Teams.upNext().some(m => m.game === g.id) ? '●' : '';
+    return `<button class="btab${bGame === g.id ? ' on' : ''}" data-bg="${g.id}">${g.emoji} ${g.name}${st ? `<span class="st">${st}</span>` : ''}</button>`;
+  }).join('');
+  const g = Teams.gameInfo(bGame);
+  const br = Teams.bracket(bGame);
+  const ready = Teams.teams().filter(t => t.members.length);
+  let body;
+  if (!br) {
+    body = `<div class="card" style="text-align:center">
+      <p style="font-size:0.9rem;opacity:0.85;margin-bottom:0.8rem">No ${esc(g.name)} bracket yet. Starting one shuffles the ${ready.length} team${ready.length === 1 ? '' : 's'} signed in right now into a random single-elimination bracket.</p>
+      <button class="primary" id="startB" ${ready.length < 2 ? 'disabled' : ''}>START ${esc(g.name.toUpperCase())} BRACKET</button>
+      ${ready.length < 2 ? '<div class="hint">Need at least 2 teams signed in.</div>' : ''}
+    </div>`;
+  } else {
+    const L = n => n ? esc(Teams.label(n)) : '';
+    const slot = (m, n) => {
+      if (!n) return `<div class="slot tbd"><span class="nm">${m.bye && m.round === 0 ? 'bye' : 'TBD'}</span></div>`;
+      const cls = m.winner ? (m.winner === n ? ' win' : ' lose') : '';
+      return `<button class="slot${cls}" data-m="${m.id}" data-t="${n}"><span class="nm">${L(n)}</span></button>`;
+    };
+    const cols = br.rounds.map(r => `<div class="round"><h4>${r.name}</h4><div class="ms">${r.matches.map(m => {
+      const isReady = m.a && m.b && !m.winner;
+      const mine = me && (m.a === me.num || m.b === me.num);
+      if (m.bye) return `<div class="match"><div class="slot win"><span class="nm">${L(m.a)}</span></div><div class="mfoot"><span>bye</span></div></div>`;
+      return `<div class="match${isReady ? ' ready' : ''}${mine ? ' mine' : ''}">${slot(m, m.a)}${slot(m, m.b)}
+        ${m.winner ? `<div class="mfoot"><span>${esc(m.score || 'final')}</span>${m.rid ? `<button class="undo" data-undo="${m.rid}" title="Undo">✕</button>` : ''}</div>` : ''}</div>`;
+    }).join('')}</div></div>`).join('');
+    body = `${br.champion ? `<div class="champ">👑 ${L(br.champion)} 👑</div>` : `<div class="tap-hint">Green = ready to play. When it's done, tap the winner.</div>`}
+      <div class="bracket"><div class="rounds">${cols}</div></div>
+      <div class="bnote"><span>${br.seeds.length} teams · random draw${br.by ? ' · started by ' + esc(br.by) : ''}</span><button class="link" id="restartB">Restart / reshuffle</button></div>`;
+  }
+  el.innerHTML = `<div class="btabs">${tabs}</div>${body}`;
+  el.querySelectorAll('[data-bg]').forEach(b => b.addEventListener('click', () => { bGame = b.dataset.bg; renderBrackets(); }));
+  const start = document.getElementById('startB'); if (start) start.addEventListener('click', () => startBracket(false));
+  const restart = document.getElementById('restartB'); if (restart) restart.addEventListener('click', () => startBracket(true));
+  el.querySelectorAll('.match.ready .slot[data-t]').forEach(b => b.addEventListener('click', () => pickWinner(b.dataset.m, +b.dataset.t)));
+  el.querySelectorAll('[data-undo]').forEach(b => b.addEventListener('click', async () => {
+    if (!confirm('Undo this result? Later rounds that depended on it reset too.')) return;
+    try { await Teams.send({ t: 'void', rid: b.dataset.undo, by: me ? me.name : '' }); toast('Undone'); } catch (e) { toast('Couldn’t undo. Try again'); }
+  }));
+}
+async function startBracket(restart) {
+  const g = Teams.gameInfo(bGame);
+  const nums = Teams.teams().filter(t => t.members.length).map(t => t.num);
+  if (nums.length < 2) return toast('Need at least 2 teams');
+  if (!confirm(restart ? `Restart ${g.name}? This reshuffles all ${nums.length} current teams and wipes the bracket (logged wins still count as tokens).` : `Start the ${g.name} bracket with ${nums.length} teams?`)) return;
+  for (let i = nums.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [nums[i], nums[j]] = [nums[j], nums[i]]; }
+  try { await Teams.send({ t: 'bracket', bid: Teams.newRid(), game: bGame, seeds: nums, by: me ? me.name : '' }); toast(`${g.emoji} Bracket drawn`); }
+  catch (e) { toast('Couldn’t start. Try again'); }
+}
+async function pickWinner(matchId, winner) {
+  const br = Teams.bracket(bGame); if (!br) return;
+  const m = br.rounds.flatMap(r => r.matches).find(x => x.id === matchId); if (!m || m.winner) return;
+  const loser = m.a === winner ? m.b : m.a;
+  if (!confirm(`${Teams.label(winner)} beat ${Teams.label(loser)}?`)) return;
+  const score = (prompt('Score? (optional, e.g. 3 cups left)') || '').trim().slice(0, 30);
+  try {
+    await Teams.send({ t: 'result', rid: Teams.newRid(), game: bGame, winner, losers: [loser], score, by: me ? me.name : '', bid: br.bid, match: matchId });
+    toast(`🪙 ${Teams.label(winner)} advances`);
+  } catch (e) { toast('Couldn’t save. Try again'); }
+}
+
 /* ---------- Standings, feed, teams ---------- */
 function renderStandings() {
   const rows = Teams.standings();
@@ -314,7 +417,7 @@ function renderAll() {
   const typing = a && a.tagName === 'INPUT';
   if (!(typing && document.getElementById('me').contains(a))) renderMe();
   if (!(typing && document.getElementById('logCard').contains(a))) renderLog();
-  renderStandings(); renderFeed(); renderTeams();
+  renderBrackets(); renderStandings(); renderFeed(); renderTeams();
 }
 
 /* ---------- Actions ---------- */

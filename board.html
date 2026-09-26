@@ -92,10 +92,10 @@
   /* Right panel: lawn games / football tabs */
   #right { min-height: 0; }
   .tabs { display: flex; gap: calc(var(--u) * 0.6); align-items: center; margin-bottom: calc(var(--u) * 0.6); }
-  .tabs button { font-family: 'Righteous', cursive; font-size: calc(var(--u) * 1.5); letter-spacing: 0.06em; background: none; border: none;
+  .tabs button { font-family: 'Righteous', cursive; font-size: calc(var(--u) * 1.3); letter-spacing: 0.04em; background: none; border: none; white-space: nowrap;
     color: rgba(0,229,255,0.45); padding: 0; margin-right: calc(var(--u) * 0.8); cursor: pointer; }
   .tabs button.on { color: var(--cyan); text-shadow: 0 0 calc(var(--u) * 0.8) rgba(0,229,255,0.5); }
-  .tabs .auto { margin-left: auto; font-size: calc(var(--u) * 0.95); opacity: 0.45; }
+  .tabs .auto { margin-left: auto; font-size: calc(var(--u) * 0.85); opacity: 0.45; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
   .pane { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: calc(var(--u) * 0.6); }
   .pane[hidden] { display: none; }
   .legend { font-size: calc(var(--u) * 1); opacity: 0.55; font-weight: 600; letter-spacing: 0.04em; }
@@ -112,6 +112,26 @@
   .lres { font-size: calc(var(--u) * 1.15); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .lres b { color: var(--green); }
   .lres span { opacity: 0.55; font-size: 0.9em; }
+
+  /* Bracket pane */
+  .bgt { font-family: 'Righteous', cursive; font-size: calc(var(--u) * 1.6); color: var(--pink); display: flex; justify-content: space-between; align-items: baseline; }
+  .bgt small { font-family: 'Inter'; font-size: calc(var(--u) * 1); color: #f0eaff; opacity: 0.55; font-weight: 600; }
+  #brBody { flex: 1; min-height: 0; display: flex; gap: calc(var(--u) * 1); }
+  .bcol { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .bcol h4 { font-family: 'Righteous', cursive; font-weight: 400; font-size: calc(var(--u) * 1.05); color: var(--cyan); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: calc(var(--u) * 0.5); }
+  .bcol .ms { flex: 1; display: flex; flex-direction: column; justify-content: space-around; gap: calc(var(--u) * 0.6); }
+  .bm { background: var(--card); border: 1px solid rgba(255,255,255,0.08); border-radius: calc(var(--u) * 0.7); overflow: hidden; }
+  .bm.ready { border-color: rgba(62,224,122,0.7); box-shadow: 0 0 calc(var(--u) * 0.8) rgba(62,224,122,0.25); }
+  .bs { display: flex; justify-content: space-between; gap: 0.4em; padding: calc(var(--u) * 0.45) calc(var(--u) * 0.7); font-size: calc(var(--u) * 1.15); font-weight: 600; }
+  .bs + .bs { border-top: 1px solid rgba(255,255,255,0.07); }
+  .bs .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bs.tbd .nm { opacity: 0.35; font-style: italic; }
+  .bs.win { background: rgba(62,224,122,0.14); color: var(--green); }
+  .bs.lose { opacity: 0.4; }
+  .bs .sc { opacity: 0.6; font-size: 0.85em; white-space: nowrap; }
+  .bchamp { flex: 0 0 auto; align-self: center; text-align: center; font-family: 'Righteous', cursive; color: var(--yellow);
+    font-size: calc(var(--u) * 1.6); text-shadow: 0 0 calc(var(--u) * 1.2) rgba(255,230,0,0.5); max-width: 22%; line-height: 1.2; }
+  .bchamp .crown { font-size: calc(var(--u) * 3.5); display: block; }
 
   @media (orientation: portrait) {
     :root { --u: min(1.35vw, 0.95vh); }
@@ -136,10 +156,14 @@
     <div id="standings"></div>
   </section>
   <section id="right">
-    <div class="tabs"><button id="tabLawn" class="on">🍻 LAWN GAMES</button><button id="tabFb">🏈 GAMES</button><span class="auto" id="autoNote">switches every 20s · tap to pick</span></div>
+    <div class="tabs"><button id="tabLawn" class="on">🍻 LAWN GAMES</button><button id="tabBr">🏆 BRACKETS</button><button id="tabFb">🏈 GAMES</button><span class="auto" id="autoNote">auto-rotates</span></div>
     <div class="pane" id="paneLawn">
       <div id="lawn"></div>
       <div id="lawnFeed"></div>
+    </div>
+    <div class="pane" id="paneBr" hidden>
+      <div class="bgt" id="brTitle"></div>
+      <div id="brBody"></div>
     </div>
     <div class="pane" id="paneFb" hidden>
       <div class="legend">pink bar = away win odds · # = how many of us picked them</div>
@@ -237,26 +261,63 @@ function renderLawn() {
       <div class="rec">${r.wins}-${r.losses}</div>
       <div class="tok">🪙${r.wins}</div>
     </div>`; }).join('') : '<div class="lempty">No teams yet. Sign in at beerbeachballs.com/teams.html</div>';
-  const feed = Teams.feed().slice(0, 4);
-  document.getElementById('lawnFeed').innerHTML = feed.length
+  const next = Teams.upNext().slice(0, 4);
+  const champs = Teams.GAMES.filter(g => g.bracket).map(g => ({ g, br: Teams.bracket(g.id) })).filter(x => x.br && x.br.champion);
+  const nextHtml = (champs.length ? '<div class="legend">CHAMPIONS</div>' + champs.map(x => `<div class="lres">${x.g.emoji} 👑 <b style="color:var(--yellow)">${esc(Teams.label(x.br.champion))}</b> <span>${esc(x.g.name)}</span></div>`).join('') : '')
+    + (next.length ? '<div class="legend">UP NEXT</div>' + next.map(m => `<div class="lres">${Teams.gameInfo(m.game).emoji} <b style="color:var(--cyan)">${esc(Teams.label(m.a))}</b> vs <b style="color:var(--cyan)">${esc(Teams.label(m.b))}</b> <span>${esc(m.round)}</span></div>`).join('') : '');
+  const feed = Teams.feed().slice(0, next.length || champs.length ? 3 : 4);
+  document.getElementById('lawnFeed').innerHTML = nextHtml + (feed.length
     ? '<div class="legend">LATEST</div>' + feed.map(r => `<div class="lres">${Teams.gameInfo(r.game).emoji} <b>${esc(Teams.label(r.winner))}</b> beat ${r.losers.map(n => esc(Teams.label(n))).join(', ')}${r.score ? ' <span>(' + esc(r.score) + ')</span>' : ''} <span>${new Date(r.time * 1000).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</span></div>`).join('')
-    : '<div class="legend">Log games at beerbeachballs.com/teams.html</div>';
+    : (nextHtml ? '' : '<div class="legend">Brackets and results at beerbeachballs.com/teams.html</div>'));
 }
 
+/* ---------- Brackets pane: shows one bracket at a time ---------- */
+let brIdx = 0;
+const liveBrackets = () => Teams.GAMES.filter(g => g.bracket).map(g => Teams.bracket(g.id)).filter(Boolean);
+function renderBracket() {
+  const list = liveBrackets();
+  const title = document.getElementById('brTitle'), body = document.getElementById('brBody');
+  if (!list.length) { title.innerHTML = ''; body.innerHTML = '<div class="lempty">No brackets yet. Start one on beerbeachballs.com/teams.html</div>'; return; }
+  const br = list[brIdx % list.length];
+  const g = Teams.gameInfo(br.game);
+  title.innerHTML = `<span>${g.emoji} ${esc(g.name)}</span><small>${list.length > 1 ? list.map((x, i) => (i === brIdx % list.length ? '●' : '○')).join(' ') : ''}</small>`;
+  const L = n => esc(Teams.label(n));
+  const slot = (m, n) => {
+    if (!n) return `<div class="bs tbd"><span class="nm">${m.bye ? 'bye' : 'TBD'}</span></div>`;
+    const cls = m.winner ? (m.winner === n ? ' win' : ' lose') : '';
+    const sc = m.winner === n && m.score ? `<span class="sc">${esc(m.score)}</span>` : '';
+    return `<div class="bs${cls}"><span class="nm">${L(n)}</span>${sc}</div>`;
+  };
+  body.innerHTML = br.rounds.map(r => `<div class="bcol"><h4>${r.name}</h4><div class="ms">${r.matches.map(m =>
+      `<div class="bm${m.a && m.b && !m.winner ? ' ready' : ''}">${slot(m, m.a)}${m.bye ? '' : slot(m, m.b)}</div>`).join('')}</div></div>`).join('')
+    + (br.champion ? `<div class="bchamp"><span class="crown">👑</span>${L(br.champion)}</div>` : '');
+}
+
+// Rotation: lawn standings -> each bracket -> football games. A tap holds the view for a minute.
 let pane = 'lawn', lastTap = 0;
 function showPane(which) {
   pane = which;
-  document.getElementById('paneLawn').hidden = which !== 'lawn';
-  document.getElementById('paneFb').hidden = which !== 'fb';
-  document.getElementById('tabLawn').classList.toggle('on', which === 'lawn');
-  document.getElementById('tabFb').classList.toggle('on', which === 'fb');
+  ['Lawn', 'Br', 'Fb'].forEach(k => {
+    document.getElementById('pane' + k).hidden = which !== k.toLowerCase();
+    document.getElementById('tab' + k).classList.toggle('on', which === k.toLowerCase());
+  });
+  if (which === 'br') renderBracket();
 }
-document.getElementById('tabLawn').addEventListener('click', e => { e.stopPropagation(); lastTap = Date.now(); showPane('lawn'); keepAwake(); });
-document.getElementById('tabFb').addEventListener('click', e => { e.stopPropagation(); lastTap = Date.now(); showPane('fb'); keepAwake(); });
-setInterval(() => { if (Date.now() - lastTap > 60000) showPane(pane === 'lawn' ? 'fb' : 'lawn'); }, 20000); // pauses a minute after a tap
+['Lawn', 'Br', 'Fb'].forEach(k => document.getElementById('tab' + k).addEventListener('click', e => {
+  e.stopPropagation(); lastTap = Date.now();
+  if (k === 'Br' && pane === 'br') brIdx++; // tap again to flip to the next bracket
+  showPane(k.toLowerCase()); keepAwake();
+}));
+setInterval(() => {
+  if (Date.now() - lastTap < 60000) return;
+  const n = liveBrackets().length;
+  if (pane === 'lawn') { if (n) { brIdx = 0; showPane('br'); } else showPane('fb'); }
+  else if (pane === 'br') { if (brIdx + 1 < n) { brIdx++; renderBracket(); } else showPane('fb'); }
+  else showPane('lawn');
+}, 20000);
 
 function renderAll() { renderStandings(); renderGames(); renderLawn(); renderMeta(); }
-Teams.onChange(() => renderLawn());
+Teams.onChange(() => { renderLawn(); if (pane === 'br') renderBracket(); });
 Teams.start();
 function tickClock() {
   document.getElementById('clock').textContent = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
