@@ -124,6 +124,7 @@
   .bm.ready { border-color: rgba(62,224,122,0.7); box-shadow: 0 0 calc(var(--u) * 0.8) rgba(62,224,122,0.25); }
   .bs { display: flex; justify-content: space-between; gap: 0.4em; padding: calc(var(--u) * 0.45) calc(var(--u) * 0.7); font-size: calc(var(--u) * 1.15); font-weight: 600; }
   .bs + .bs { border-top: 1px solid rgba(255,255,255,0.07); }
+  .bm.bye { border-style: dashed; opacity: 0.7; }
   .bs .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .bs.tbd .nm { opacity: 0.35; font-style: italic; }
   .bs.win { background: rgba(62,224,122,0.14); color: var(--green); }
@@ -177,8 +178,8 @@
   <span id="wake">Tap anywhere to keep the screen awake</span>
 </footer>
 
-<script src="pool.js?v=1452"></script>
-<script src="teams.js?v=1452"></script>
+<script src="pool.js?v=1456"></script>
+<script src="teams.js?v=1456"></script>
 <script>
 const LOCK_TIME = Date.parse('2026-09-26T17:25:00Z'); // keep in sync with pickem.html
 const locked = () => Date.now() >= LOCK_TIME;
@@ -289,7 +290,8 @@ function renderBracket() {
     return `<div class="bs${cls}"><span class="nm">${L(n)}</span>${sc}</div>`;
   };
   body.innerHTML = br.rounds.map(r => `<div class="bcol"><h4>${r.name}</h4><div class="ms">${r.matches.map(m =>
-      `<div class="bm${m.a && m.b && !m.winner ? ' ready' : ''}">${slot(m, m.a)}${m.bye ? '' : slot(m, m.b)}</div>`).join('')}</div></div>`).join('')
+      m.bye ? `<div class="bm bye"><div class="bs"><span class="nm">${L(m.a)}</span><span class="sc">bye</span></div></div>`
+            : `<div class="bm${m.a && m.b && !m.winner ? ' ready' : ''}">${slot(m, m.a)}${slot(m, m.b)}</div>`).join('')}</div></div>`).join('')
     + (br.champion ? `<div class="bchamp"><span class="crown">👑</span>${L(br.champion)}</div>` : '');
 }
 

@@ -125,6 +125,8 @@
   .match.ready .slot:active { background: rgba(255,45,149,0.2); }
   .mfoot { display: flex; justify-content: space-between; align-items: center; font-size: 0.68rem; opacity: 0.6; padding: 0.15rem 0.6rem 0.35rem; }
   .mfoot .undo { font-size: 0.75rem; padding: 0 0.2rem; }
+  .match.byem { border-style: dashed; opacity: 0.75; }
+  .match.byem .mfoot { opacity: 0.8; color: var(--yellow); }
   .res .edit { font-size: 0.8rem; }
   .modal { position: fixed; inset: 0; z-index: 300; background: rgba(5,0,15,0.75); backdrop-filter: blur(4px); display: flex; align-items: flex-end; justify-content: center; }
   .modal[hidden] { display: none; }
@@ -172,7 +174,7 @@
 <div class="toast" id="toast"></div>
 <div class="modal" id="editModal" hidden><div class="sheet" id="editSheet"></div></div>
 
-<script src="teams.js?v=1452"></script>
+<script src="teams.js?v=1456"></script>
 <script>
 const ME_KEY = 'bbb_teams_me', MIN_KEY = 'bbb_teams_min';
 const store = { get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
@@ -330,7 +332,7 @@ function renderBrackets() {
     const cols = br.rounds.map(r => `<div class="round"><h4>${r.name}</h4><div class="ms">${r.matches.map(m => {
       const isReady = m.a && m.b && !m.winner;
       const mine = me && (m.a === me.num || m.b === me.num);
-      if (m.bye) return `<div class="match"><div class="slot win"><span class="nm">${L(m.a)}</span></div><div class="mfoot"><span>bye</span></div></div>`;
+      if (m.bye) return `<div class="match byem"><div class="slot"><span class="nm">${L(m.a)}</span></div><div class="mfoot"><span>🎟️ bye: free pass to next round</span></div></div>`;
       return `<div class="match${isReady ? ' ready' : ''}${mine ? ' mine' : ''}">${slot(m, m.a)}${slot(m, m.b)}
         ${m.winner ? `<div class="mfoot"><span>${esc(m.score || 'final')}</span>${m.rid ? `<span><button class="undo" data-bedit="${m.rid}" title="Edit">✏️</button><button class="undo" data-undo="${m.rid}" title="Delete">✕</button></span>` : ''}</div>` : ''}</div>`;
     }).join('')}</div></div>`).join('');
