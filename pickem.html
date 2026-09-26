@@ -163,6 +163,21 @@
     border-radius: 12px; padding: 0.8rem 1rem; text-align: center; font-weight: 800; margin-bottom: 1rem;
   }
 
+  .send-card {
+    background: var(--card); border: 2px solid var(--cyan); border-radius: 12px;
+    padding: 1rem; text-align: center; margin-bottom: 1rem;
+  }
+  .send-card h3 { font-family: 'Righteous', cursive; color: var(--cyan); font-size: 1.05rem; margin-bottom: 0.4rem; }
+  .send-card p { font-size: 0.82rem; line-height: 1.45; opacity: 0.9; margin-bottom: 0.8rem; }
+  .send-card .btns { display: flex; flex-direction: column; gap: 0.5rem; }
+  .send-card a, .send-card button {
+    display: block; padding: 0.75rem 1rem; border-radius: 10px; font-family: 'Righteous', cursive;
+    font-size: 1rem; text-decoration: none; cursor: pointer; border: none;
+  }
+  .send-card .primary { background: linear-gradient(135deg, var(--pink), var(--orange)); color: #fff; box-shadow: 0 0 14px rgba(255,45,149,0.5); }
+  .send-card .secondary { background: transparent; color: var(--cyan); border: 1px solid var(--cyan); }
+  .send-card .empty { color: var(--orange); font-weight: 700; font-size: 0.85rem; }
+
   /* ---------- LEADERBOARD ---------- */
   #leaderboardTab { display: none; }
   .lb-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; text-align: center; }
@@ -198,6 +213,7 @@
 
   <div id="picksTab">
     <div class="locked-banner" id="lockedBanner" style="display:none">🔒 PICKS ARE LOCKED — good luck, degenerates</div>
+    <div class="send-card" id="sendCard" style="display:none"></div>
 
     <div class="howto">
       <strong>How it works:</strong> Tap a team to pick the winner of each game (straight up — the spread is just for reference).
@@ -219,8 +235,8 @@
   <div id="leaderboardTab">
     <div class="lb-card">
       <h2>LEADERBOARD</h2>
-      <p id="lbBody">Everyone's picks stay hidden until kickoff (no copying, you snakes).<br>
-      The leaderboard goes live at noon Saturday and updates as games finish.</p>
+      <p id="lbBody">📤 Step 1: go to the MY PICKS tab and hit <strong>SEND MY PICKS TO STEVE</strong>.<br>
+      The leaderboard goes up once everyone's picks are in, and updates as games finish.</p>
       <div class="lb-rules">💰 $10 buy-in · 1st takes the pot · 2nd gets their $10 back</div>
     </div>
   </div>
@@ -386,12 +402,52 @@ function showTab(which) {
   document.getElementById('tabLb').classList.toggle('active', which === 'lb');
 }
 
+/* ---------- Send picks (no shared backend, so entries get emailed to Steve) ---------- */
+const COMMISH_EMAIL = 'sgordon1024@gmail.com';
+
+function picksText() {
+  const name = state.name || '(no name)';
+  const lines = state.order.map((id, i) => {
+    const g = byId[id];
+    const tid = state.picks[id];
+    const team = tid === g.away.tid ? g.away : tid === g.home.tid ? g.home : null;
+    const opp = team === g.away ? g.home : g.away;
+    return `${N - i} pts: ${team ? team.name + ' over ' + opp.name : 'NO PICK (' + g.away.name + ' @ ' + g.home.name + ')'}`;
+  });
+  const code = state.order.map((id, i) => `${id}=${state.picks[id] || '-'}@${N - i}`).join(',');
+  return `Name: ${name}\nSubmitted: ${state.submittedAt || 'not submitted'}\n\n${lines.join('\n')}\n\nBBBCODE|${name}|${code}`;
+}
+
+function renderSendCard() {
+  const card = document.getElementById('sendCard');
+  card.style.display = '';
+  const picked = Object.keys(state.picks).filter(id => byId[id]).length;
+  if (!picked) {
+    card.innerHTML = `<h3>📤 SEND YOUR PICKS</h3>
+      <p class="empty">No picks found in this browser. Open this page on the same phone and browser you made your picks on.</p>`;
+    return;
+  }
+  const subject = `BBB Pick'em - ${state.name || 'no name'}`;
+  const mailto = `mailto:${COMMISH_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(picksText())}`;
+  card.innerHTML = `<h3>📤 ONE LAST STEP</h3>
+    <p>Picks didn't sync automatically. Tap below to email your locked picks (${picked}/${N}) to Steve so you make the leaderboard.</p>
+    <div class="btns">
+      <a class="primary" href="${mailto}">SEND MY PICKS TO STEVE</a>
+      <button class="secondary" id="copyPicks">COPY PICKS (to text him instead)</button>
+    </div>`;
+  document.getElementById('copyPicks').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(picksText()); toast('Copied ✔ paste it in a text to Steve'); }
+    catch (e) { toast('Copy failed, use the email button'); }
+  });
+}
+
 function tickCountdown() {
   const pill = document.getElementById('lockPill');
   const ms = LOCK_TIME - Date.now();
   if (ms <= 0) {
     pill.textContent = '🔒 LOCKED';
     document.getElementById('lockedBanner').style.display = '';
+    renderSendCard();
     return;
   }
   const d = Math.floor(ms / 86400000), h = Math.floor(ms / 3600000) % 24, m = Math.floor(ms / 60000) % 60;
