@@ -416,7 +416,9 @@ function showTab(which) {
   document.getElementById('leaderboardTab').style.display = which === 'lb' ? 'block' : 'none';
   document.getElementById('tabPicks').classList.toggle('active', which === 'picks');
   document.getElementById('tabLb').classList.toggle('active', which === 'lb');
+  history.replaceState(null, '', which === 'lb' ? '#leaderboard' : location.pathname + location.search);
 }
+if (location.hash === '#leaderboard') showTab('lb');
 
 /* ---------- LEADERBOARD ----------
    Entries arrive by email (the BBBCODE line). Paste each one here. */
