@@ -6,6 +6,7 @@
      {t:'team', num, name, by}            team name for a hat number
      {t:'result', rid, game, winner, losers:[num], score, by}   a finished game
      {t:'void', rid, by}                  undo a logged game
+     {t:'edit', rid, game, winner, losers, score, by}   correct a logged game (latest edit wins)
      {t:'bracket', bid, game, seeds:[num], by}   start (or restart) a single-elim bracket for a game; latest per game wins
    Bracket matches are ordinary 'result' events tagged {bid, match:'r<round>m<index>'}, so bracket wins earn tokens too.
    A result logged from the free-form form also counts for a bracket match when it's the same game and the same two teams.
@@ -27,6 +28,7 @@ const Teams = (() => {
   const teamNames = {};   // num -> { name, time }
   const results = {};     // rid -> { rid, game, winner, losers, score, by, time }
   const voided = {};      // rid -> time
+  const edits = {};       // rid -> { game, winner, losers, score, by, time }
   const brackets = {};    // game -> { bid, game, seeds, by, time }
   const listeners = [];
   let connected = false, es = null;
@@ -49,6 +51,10 @@ const Teams = (() => {
     } else if (ev.t === 'bracket' && ev.bid && ev.game && Array.isArray(ev.seeds)) {
       const g = String(ev.game);
       if (!brackets[g] || brackets[g].time <= t) brackets[g] = { bid: ev.bid, game: g, seeds: ev.seeds.map(Number).filter(n => n > 0), by: String(ev.by || ''), time: t };
+    } else if (ev.t === 'edit' && ev.rid && ev.winner && Array.isArray(ev.losers)) {
+      if (!edits[ev.rid] || edits[ev.rid].time <= t)
+        edits[ev.rid] = { game: String(ev.game || 'other').slice(0, 40), winner: +ev.winner,
+          losers: ev.losers.map(Number).filter(n => n && n !== +ev.winner), score: String(ev.score || '').slice(0, 30), editedBy: String(ev.by || ''), time: t };
     } else if (ev.t === 'void' && ev.rid) {
       voided[ev.rid] = t;
     } else return false;
@@ -83,8 +89,10 @@ const Teams = (() => {
   }
   function gameInfo(id) { return gameById[id] || { id, name: id, emoji: '🎯' }; }
 
-  function feed() { // newest first, voids removed
-    return Object.values(results).filter(r => !voided[r.rid]).sort((a, b) => b.time - a.time);
+  function feed() { // newest first, voids removed, edits applied (original log time is kept)
+    return Object.values(results).filter(r => !voided[r.rid])
+      .map(r => { const e = edits[r.rid]; return e && e.losers.length ? { ...r, game: e.game, winner: e.winner, losers: e.losers, score: e.score, edited: true, editedBy: e.editedBy } : r; })
+      .sort((a, b) => b.time - a.time);
   }
   function standings() {
     const rows = {};

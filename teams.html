@@ -125,6 +125,15 @@
   .match.ready .slot:active { background: rgba(255,45,149,0.2); }
   .mfoot { display: flex; justify-content: space-between; align-items: center; font-size: 0.68rem; opacity: 0.6; padding: 0.15rem 0.6rem 0.35rem; }
   .mfoot .undo { font-size: 0.75rem; padding: 0 0.2rem; }
+  .res .edit { font-size: 0.8rem; }
+  .modal { position: fixed; inset: 0; z-index: 300; background: rgba(5,0,15,0.75); backdrop-filter: blur(4px); display: flex; align-items: flex-end; justify-content: center; }
+  .modal[hidden] { display: none; }
+  .sheet { width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto; background: #170530; border: 1px solid var(--pink); border-bottom: none;
+    border-radius: 18px 18px 0 0; padding: 1.1rem 1rem calc(1.2rem + env(safe-area-inset-bottom)); }
+  .sheet h3 { font-family: 'Righteous', cursive; font-weight: 400; color: var(--pink); font-size: 1.2rem; margin-bottom: 0.3rem; }
+  .sheet .note { font-size: 0.78rem; opacity: 0.65; margin-bottom: 0.8rem; }
+  .sheet .btnrow { display: flex; gap: 0.6rem; margin-top: 1rem; }
+  .sheet .btnrow .primary { flex: 1; }
   .champ { text-align: center; margin: 0.4rem 0 0.8rem; font-family: 'Righteous', cursive; font-size: 1.3rem; color: var(--yellow); text-shadow: 0 0 14px rgba(255,230,0,0.5); }
   .bnote { font-size: 0.75rem; opacity: 0.65; margin-top: 0.6rem; display: flex; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; }
   .tap-hint { font-size: 0.78rem; color: var(--green); margin-bottom: 0.6rem; }
@@ -161,6 +170,7 @@
   <div class="status" id="status">Connecting…</div>
 </div>
 <div class="toast" id="toast"></div>
+<div class="modal" id="editModal" hidden><div class="sheet" id="editSheet"></div></div>
 
 <script src="teams.js"></script>
 <script>
@@ -322,7 +332,7 @@ function renderBrackets() {
       const mine = me && (m.a === me.num || m.b === me.num);
       if (m.bye) return `<div class="match"><div class="slot win"><span class="nm">${L(m.a)}</span></div><div class="mfoot"><span>bye</span></div></div>`;
       return `<div class="match${isReady ? ' ready' : ''}${mine ? ' mine' : ''}">${slot(m, m.a)}${slot(m, m.b)}
-        ${m.winner ? `<div class="mfoot"><span>${esc(m.score || 'final')}</span>${m.rid ? `<button class="undo" data-undo="${m.rid}" title="Undo">✕</button>` : ''}</div>` : ''}</div>`;
+        ${m.winner ? `<div class="mfoot"><span>${esc(m.score || 'final')}</span>${m.rid ? `<span><button class="undo" data-bedit="${m.rid}" title="Edit">✏️</button><button class="undo" data-undo="${m.rid}" title="Undo">✕</button></span>` : ''}</div>` : ''}</div>`;
     }).join('')}</div></div>`).join('');
     body = `${br.champion ? `<div class="champ">👑 ${L(br.champion)} 👑</div>` : `<div class="tap-hint">Green = ready to play. When it's done, tap the winner.</div>`}
       <div class="bracket"><div class="rounds">${cols}</div></div>
@@ -333,6 +343,7 @@ function renderBrackets() {
   const start = document.getElementById('startB'); if (start) start.addEventListener('click', () => startBracket(false));
   const restart = document.getElementById('restartB'); if (restart) restart.addEventListener('click', () => startBracket(true));
   el.querySelectorAll('.match.ready .slot[data-t]').forEach(b => b.addEventListener('click', () => pickWinner(b.dataset.m, +b.dataset.t)));
+  el.querySelectorAll('[data-bedit]').forEach(b => b.addEventListener('click', () => openEditor(b.dataset.bedit)));
   el.querySelectorAll('[data-undo]').forEach(b => b.addEventListener('click', async () => {
     if (!confirm('Undo this result? Later rounds that depended on it reset too.')) return;
     try { await Teams.send({ t: 'void', rid: b.dataset.undo, by: me ? me.name : '' }); toast('Undone'); } catch (e) { toast('Couldn’t undo. Try again'); }
@@ -383,11 +394,13 @@ function renderFeed() {
     return `<div class="res">
       <span class="res-e">${g.emoji}</span>
       <span class="res-body"><b>${esc(Teams.label(r.winner))}</b> beat ${r.losers.map(n => esc(Teams.label(n))).join(', ')}
-        <span class="res-meta">${esc(g.name)}${r.score ? ' · ' + esc(r.score) : ''} · ${timeStr(r.time)}${r.by ? ' · logged by ' + esc(r.by) : ''}</span></span>
+        <span class="res-meta">${r.bid ? '🏆 bracket · ' : ''}${esc(g.name)}${r.score ? ' · ' + esc(r.score) : ''} · ${timeStr(r.time)}${r.by ? ' · logged by ' + esc(r.by) : ''}${r.edited ? ' · ✏️ edited' + (r.editedBy ? ' by ' + esc(r.editedBy) : '') : ''}</span></span>
+      <button class="undo edit" data-edit="${esc(r.rid)}" title="Edit">✏️</button>
       <button class="undo" data-rid="${esc(r.rid)}" title="Undo">✕</button>
     </div>`;
   }).join('') + (items.length > 40 ? `<div class="empty">+ ${items.length - 40} older</div>` : '');
-  el.querySelectorAll('.undo').forEach(b => b.addEventListener('click', async () => {
+  el.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openEditor(b.dataset.edit)));
+  el.querySelectorAll('.undo[data-rid]').forEach(b => b.addEventListener('click', async () => {
     if (!confirm('Remove this game from the scoreboard?')) return;
     try { await Teams.send({ t: 'void', rid: b.dataset.rid, by: me ? me.name : '' }); toast('Removed'); } catch (e) { toast('Couldn’t remove. Try again'); }
   }));
@@ -419,6 +432,60 @@ function renderAll() {
   if (!(typing && document.getElementById('logCard').contains(a))) renderLog();
   renderBrackets(); renderStandings(); renderFeed(); renderTeams();
 }
+
+/* ---------- Edit a logged game ---------- */
+let ed = null; // { rid, game, other, winner, losers:Set, score, bracketPair:[a,b]|null }
+function openEditor(rid) {
+  const r = Teams.feed().find(x => x.rid === rid); if (!r) return toast('That game was removed');
+  const known = Teams.GAMES.some(g => g.id === r.game);
+  ed = { rid, game: known ? r.game : 'other', other: known ? '' : r.game, winner: r.winner, losers: new Set(r.losers), score: r.score || '',
+         bracketPair: r.bid ? [r.winner, ...r.losers] : null };
+  document.getElementById('editModal').hidden = false;
+  renderEditor();
+}
+function closeEditor() { ed = null; document.getElementById('editModal').hidden = true; }
+function renderEditor() {
+  if (!ed) return;
+  const el = document.getElementById('editSheet');
+  const chip = (on, attrs, text) => `<button class="chip${on ? ' on' : ''}" ${attrs}>${text}</button>`;
+  const all = Teams.teams();
+  const pool = ed.bracketPair ? all.filter(t => ed.bracketPair.includes(t.num)) : all;
+  el.innerHTML = `<h3>✏️ Edit game</h3>
+    <div class="note">${ed.bracketPair ? 'Bracket match: you can flip the winner or fix the score. Later rounds update automatically.' : 'Fix anything that was logged wrong. Standings update for everyone.'}</div>
+    ${ed.bracketPair ? '' : `<label>Game</label>
+    <div class="chips">${Teams.GAMES.map(g => chip(ed.game === g.id, `data-eg="${g.id}"`, `${g.emoji} ${g.name}`)).join('')}${chip(ed.game === 'other', 'data-eg="other"', '🎯 Other')}</div>
+    ${ed.game === 'other' ? `<input id="edOther" maxlength="30" placeholder="What game?" value="${esc(ed.other)}" style="margin-top:0.5rem">` : ''}`}
+    <label style="margin-top:0.9rem">🏆 Winner</label>
+    <div class="chips">${pool.map(t => chip(ed.winner === t.num, `data-ew="${t.num}"`, esc(Teams.label(t.num)))).join('')}</div>
+    ${ed.bracketPair ? '' : `<label style="margin-top:0.9rem">💀 Beat</label>
+    <div class="chips">${all.filter(t => t.num !== ed.winner).map(t => chip(ed.losers.has(t.num), `data-el="${t.num}"`, esc(Teams.label(t.num)))).join('')}</div>`}
+    <label style="margin-top:0.9rem" for="edScore">Score <span style="text-transform:none;letter-spacing:0;opacity:.6;font-weight:600">(optional)</span></label>
+    <input id="edScore" maxlength="30" value="${esc(ed.score)}" placeholder="e.g. 21-15">
+    <div class="btnrow"><button class="ghost" id="edCancel">Cancel</button><button class="primary" id="edSave">SAVE CHANGES</button></div>`;
+  el.querySelectorAll('[data-eg]').forEach(b => b.addEventListener('click', () => { ed.game = b.dataset.eg; renderEditor(); }));
+  el.querySelectorAll('[data-ew]').forEach(b => b.addEventListener('click', () => {
+    const n = +b.dataset.ew;
+    if (ed.bracketPair) { ed.winner = n; ed.losers = new Set(ed.bracketPair.filter(x => x !== n)); }
+    else { ed.winner = n; ed.losers.delete(n); }
+    renderEditor();
+  }));
+  el.querySelectorAll('[data-el]').forEach(b => b.addEventListener('click', () => { const n = +b.dataset.el; ed.losers.has(n) ? ed.losers.delete(n) : ed.losers.add(n); renderEditor(); }));
+  const other = document.getElementById('edOther'); if (other) other.addEventListener('input', () => { ed.other = other.value; });
+  document.getElementById('edScore').addEventListener('input', e => { ed.score = e.target.value; });
+  document.getElementById('edCancel').addEventListener('click', closeEditor);
+  document.getElementById('edSave').addEventListener('click', saveEdit);
+}
+async function saveEdit() {
+  const game = ed.game === 'other' ? ed.other.trim() : ed.game;
+  if (!game) return toast('Pick a game');
+  if (!ed.winner || !ed.losers.size) return toast('Pick a winner and who they beat');
+  const btn = document.getElementById('edSave'); btn.disabled = true; btn.textContent = 'SAVING…';
+  try {
+    await Teams.send({ t: 'edit', rid: ed.rid, game, winner: ed.winner, losers: [...ed.losers], score: ed.score.trim(), by: me ? me.name : '' });
+    closeEditor(); toast('Game updated ✔');
+  } catch (e) { btn.disabled = false; btn.textContent = 'SAVE CHANGES'; toast('Couldn’t save. Try again'); }
+}
+document.getElementById('editModal').addEventListener('click', e => { if (e.target.id === 'editModal') closeEditor(); });
 
 /* ---------- Actions ---------- */
 async function join() {
