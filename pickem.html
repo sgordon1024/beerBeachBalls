@@ -436,6 +436,7 @@ const ENTRIES = [
   'BBBCODE|Marci|nd-pur=87@15,ou-uga=61@14,tam-lsu=99@13,van-aub=2@12,tex-tenn=251@11,ore-usc=2483@10,iowa-mich=2294@9,tlsa-ark=8@8,jmu-odu=256@7,okst-wvu=277@6,vt-bc=259@5,tcu-ucf=2628@4,ucla-md=26@3,hcu-unt=249@2,cnu-sus=216@1',
   'BBBCODE|Robert Reed|hcu-unt=249@15,nd-pur=87@14,ou-uga=61@13,ucla-md=120@12,tcu-ucf=2628@11,cnu-sus=3112@10,tex-tenn=251@9,iowa-mich=130@8,van-aub=2@7,ore-usc=2483@6,vt-bc=259@5,tlsa-ark=8@4,jmu-odu=256@3,okst-wvu=277@2,tam-lsu=245@1',
   'BBBCODE|DiSalvo|nd-pur=87@15,ou-uga=61@14,tex-tenn=251@13,tam-lsu=99@12,jmu-odu=256@11,tlsa-ark=202@10,vt-bc=259@9,tcu-ucf=2116@8,van-aub=2@7,hcu-unt=2277@6,cnu-sus=3112@5,ucla-md=120@4,iowa-mich=130@3,okst-wvu=197@2,ore-usc=2483@1',
+  'BBBCODE|Bernie|nd-pur=87@15,ou-uga=61@14,vt-bc=259@13,tam-lsu=99@12,van-aub=2@11,tlsa-ark=8@10,iowa-mich=130@9,cnu-sus=216@8,ucla-md=120@7,tex-tenn=2633@6,okst-wvu=277@5,jmu-odu=256@4,ore-usc=2483@3,tcu-ucf=2628@2,hcu-unt=249@1',
 ];
 
 function parseEntry(code) {
@@ -489,22 +490,20 @@ function renderLeaderboard() {
   let rank = 0, prev = null;
   const html = rows.map((r, i) => {
     if (r.pts !== prev) { rank = i + 1; prev = r.pts; }
-    return `<details class="lb-row"><summary>
-      <span class="lb-rank">${rank}</span><span class="lb-name">${esc(r.name)}</span>
-      <span class="lb-pts"><b>${r.pts}</b><small>max ${r.max}</small></span>
-    </summary><ul class="lb-picks">${r.items}</ul></details>`;
+    const head = `<span class="lb-rank">${rank}</span><span class="lb-name">${esc(r.name)}</span>
+      <span class="lb-pts"><b>${r.pts}</b><small>max ${r.max}</small></span>`;
+    return isLocked()
+      ? `<details class="lb-row"><summary>${head}</summary><ul class="lb-picks">${r.items}</ul></details>`
+      : `<div class="lb-row"><summary>${head}</summary></div>`;
   }).join('');
   const done = Object.values(results).filter(r => r.winner).length;
   document.getElementById('lbTable').innerHTML = html +
-    `<p class="lb-updated">${LB.length} entr${LB.length === 1 ? 'y' : 'ies'} · ${done}/${N} games final · updated ${new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})} · tap a name for picks</p>`;
+    `<p class="lb-updated">${LB.length} entr${LB.length === 1 ? 'y' : 'ies'} · ${done}/${N} games final · updated ${new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})} · ${isLocked() ? 'tap a name for picks' : 'picks revealed at 1:25 PM lock'}</p>`;
 }
 
-if (isLocked()) {
-  fetchResults();
-  setInterval(fetchResults, 60000);
-} else {
-  document.getElementById('lbTable').innerHTML = '<p class="lb-updated">Leaderboard goes live when picks lock.</p>';
-}
+renderLeaderboard();
+fetchResults();
+setInterval(fetchResults, 60000);
 
 /* ---------- Send picks (no shared backend, so entries get emailed to Steve) ---------- */
 const COMMISH_EMAIL = 'sgordon1024@gmail.com';
