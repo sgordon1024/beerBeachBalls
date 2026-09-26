@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TEAMS — Beer Beach Balls</title>
+<meta name="description" content="Find your partner for the Beer Beach Ball Olympics.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Monoton&family=Righteous&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍻</text></svg>">
+<style>
+  :root {
+    --pink: #ff2d95; --cyan: #00e5ff; --orange: #ff9e00; --yellow: #ffe600; --green: #3ee07a;
+    --deep: #0d021f; --card: rgba(255,255,255,0.06); --border: rgba(0,229,255,0.35);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: var(--deep); color: #f0eaff; overflow-x: hidden; padding-bottom: 3rem;
+    background-image: radial-gradient(ellipse at 20% 0%, rgba(255,45,149,0.16), transparent 55%); }
+  nav { position: sticky; top: 0; z-index: 100; background: rgba(13,2,31,0.92); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 1rem; }
+  nav a { font-family: 'Righteous', cursive; color: var(--cyan); text-decoration: none; font-size: 1rem; }
+  nav .links { display: flex; gap: 0.9rem; }
+  nav .links a { font-family: 'Inter'; font-size: 0.8rem; font-weight: 600; color: #f0eaff; opacity: 0.85; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 1.4rem 1rem; }
+  h1 { font-family: 'Monoton', cursive; font-weight: 400; color: var(--pink); font-size: clamp(2.2rem, 10vw, 3.6rem);
+    text-align: center; text-shadow: 0 0 18px rgba(255,45,149,0.6); line-height: 1.1; }
+  .sub { text-align: center; opacity: 0.8; font-size: 0.9rem; margin: 0.4rem 0 1.4rem; }
+  h2 { font-family: 'Righteous', cursive; font-weight: 400; color: var(--cyan); font-size: 1.2rem; letter-spacing: 0.06em; margin: 1.8rem 0 0.7rem; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.1rem; }
+  .hero { border: 2px solid var(--pink); box-shadow: 0 0 22px rgba(255,45,149,0.25); }
+  label { display: block; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cyan); margin-bottom: 0.3rem; }
+  input { width: 100%; padding: 0.75rem 0.9rem; border-radius: 10px; border: 1px solid var(--border); background: rgba(0,0,0,0.35);
+    color: #fff; font-size: 1rem; font-family: inherit; }
+  input:focus { outline: none; border-color: var(--pink); }
+  .row { display: flex; gap: 0.7rem; margin-bottom: 0.8rem; }
+  .row > div { flex: 1; }
+  .row > .num { flex: 0 0 6.5rem; }
+  button { font-family: 'Righteous', cursive; font-size: 1rem; border: none; border-radius: 10px; cursor: pointer; padding: 0.75rem 1.1rem; }
+  .primary { width: 100%; background: linear-gradient(135deg, var(--pink), var(--orange)); color: #fff; box-shadow: 0 0 14px rgba(255,45,149,0.45); }
+  .primary:disabled { opacity: 0.45; box-shadow: none; }
+  .ghost { background: transparent; color: var(--cyan); border: 1px solid var(--cyan); }
+  .dice { background: rgba(255,230,0,0.12); color: var(--yellow); border: 1px solid var(--yellow); white-space: nowrap; }
+  .link { background: none; border: none; color: var(--cyan); font-family: 'Inter'; font-size: 0.8rem; text-decoration: underline; padding: 0; opacity: 0.8; }
+  .me-num { font-family: 'Righteous', cursive; color: var(--yellow); font-size: 0.85rem; letter-spacing: 0.08em; }
+  .me-team { font-family: 'Righteous', cursive; font-size: clamp(1.4rem, 6vw, 2rem); color: var(--pink); line-height: 1.15; margin: 0.2rem 0 0.5rem; word-break: break-word; }
+  .me-mates { font-size: 1.05rem; line-height: 1.5; }
+  .me-mates b { color: var(--cyan); }
+  .waiting { color: var(--orange); font-weight: 700; }
+  .namebox { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+  .namebox .row { margin-bottom: 0.5rem; align-items: flex-end; }
+  .hint { font-size: 0.75rem; opacity: 0.6; margin-top: 0.4rem; }
+  .teams { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.7rem; }
+  .team { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 0.8rem 0.9rem; }
+  .team.mine { border-color: var(--pink); box-shadow: 0 0 14px rgba(255,45,149,0.3); }
+  .team.solo { border-style: dashed; opacity: 0.8; }
+  .team .n { font-family: 'Righteous', cursive; color: var(--yellow); font-size: 0.8rem; }
+  .team .tn { font-family: 'Righteous', cursive; color: var(--pink); font-size: 1.1rem; margin: 0.15rem 0 0.35rem; word-break: break-word; }
+  .team .ppl { font-size: 0.9rem; line-height: 1.45; }
+  .team .ppl .w { color: var(--orange); font-size: 0.8rem; }
+  .empty { opacity: 0.6; font-size: 0.9rem; text-align: center; padding: 1rem; }
+  .games { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.6rem; }
+  .game { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 0.8rem; text-align: center; font-weight: 700; }
+  .game .e { font-size: 1.6rem; display: block; margin-bottom: 0.2rem; }
+  .game small { display: block; font-weight: 600; opacity: 0.55; font-size: 0.72rem; margin-top: 0.2rem; }
+  .status { font-size: 0.72rem; opacity: 0.55; text-align: center; margin-top: 0.8rem; }
+  .status.err { color: var(--orange); opacity: 1; }
+  .toast { position: fixed; left: 50%; bottom: 30px; transform: translateX(-50%); background: rgba(0,229,255,0.15); border: 1px solid var(--cyan);
+    color: var(--cyan); padding: 0.6rem 1.2rem; border-radius: 999px; font-size: 0.85rem; font-weight: 600; opacity: 0; pointer-events: none;
+    transition: opacity 0.3s; z-index: 200; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html">🏖️ BEERBEACHBALLS</a>
+  <div class="links"><a href="pickem.html">Pick 'Em</a><a href="board.html">Board</a></div>
+</nav>
+
+<div class="wrap">
+  <h1>TEAMS</h1>
+  <div class="sub">Drew a number out of the hat? Punch it in to find your partner.</div>
+
+  <div id="me"></div>
+
+  <h2>🍻 ALL TEAMS</h2>
+  <div id="teams" class="teams"></div>
+
+  <h2>🏆 THE GAMES</h2>
+  <div class="games">
+    <div class="game"><span class="e">🥅</span>Putter Ball<small>scoring TBD</small></div>
+    <div class="game"><span class="e">🥤</span>Flip Cup<small>scoring TBD</small></div>
+    <div class="game"><span class="e">🏓</span>Beer Pong<small>scoring TBD</small></div>
+    <div class="game"><span class="e">🌽</span>Cornhole<small>scoring TBD</small></div>
+    <div class="game"><span class="e">🏎️</span>Mario Kart 64<small>scoring TBD</small></div>
+  </div>
+
+  <div class="status" id="status">Connecting…</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* Shared state lives in an ntfy.sh topic as an append-only log of small JSON events.
+   Events: {t:'join', id, name, num} · {t:'leave', id} · {t:'team', num, name, by}
+   ntfy.sh keeps messages for 12 hours. */
+const TOPIC = 'bbb-teams-7f3c91e2b54d';
+const BASE = 'https://ntfy.sh/' + TOPIC;
+const ME_KEY = 'bbb_teams_me';
+
+let me = null;               // { id, name, num }
+try { me = JSON.parse(localStorage.getItem(ME_KEY)); } catch (e) {}
+const devId = (me && me.id) || (Math.random().toString(36).slice(2) + Date.now().toString(36));
+
+const seen = new Set();
+const people = {};           // id -> { name, num, time }
+const teamNames = {};        // num -> { name, time }
+let connected = false;
+let editingJoin = false;
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+
+function apply(msg) {
+  if (!msg || msg.event !== 'message' || seen.has(msg.id)) return;
+  seen.add(msg.id);
+  let ev; try { ev = JSON.parse(msg.message); } catch (e) { return; }
+  const t = msg.time;
+  if (ev.t === 'join' && ev.id && ev.name && ev.num) {
+    if (!people[ev.id] || people[ev.id].time <= t) people[ev.id] = { name: String(ev.name).slice(0, 30), num: +ev.num, time: t };
+  } else if (ev.t === 'leave' && ev.id) {
+    if (!people[ev.id] || people[ev.id].time <= t) people[ev.id] = { gone: true, time: t };
+  } else if (ev.t === 'team' && ev.num) {
+    if (!teamNames[ev.num] || teamNames[ev.num].time <= t) teamNames[ev.num] = { name: String(ev.name || '').slice(0, 40), time: t };
+  }
+}
+
+async function send(ev) {
+  const r = await fetch(BASE, { method: 'POST', body: JSON.stringify(ev) });
+  if (!r.ok) throw new Error('send failed ' + r.status);
+  const msg = await r.json();
+  apply(msg); render();
+}
+
+function teams() {
+  const byNum = {};
+  Object.entries(people).forEach(([id, p]) => {
+    if (p.gone) return;
+    (byNum[p.num] = byNum[p.num] || []).push({ id, ...p });
+  });
+  return Object.keys(byNum).map(Number).sort((a, b) => a - b).map(n => ({
+    num: n, members: byNum[n].sort((a, b) => a.time - b.time), name: teamNames[n] && teamNames[n].name
+  }));
+}
+
+/* ---------- Team name generator (bachelor party grade) ---------- */
+const FULL = [
+  'Two Pumps and a Dump', 'Sloppy Seconds', 'Balls Deep', 'The Master Baiters', 'Tea Baggers Anonymous', 'Nice Putt, Nice Butt',
+  'Shaft and Furious', 'Kiss My Putts', 'The Pong Dongs', 'Cup Fondlers', 'Blue Shell Bangers', 'Hole in One Night Stand',
+  'Beer Pong Johnsons', 'Flip Cup Floppers', 'Premature Celebrators', 'The Taint Tickets', 'Cornhole Connoisseurs',
+  'Bag Tossers', 'Wet Willies', 'The Morning Wood Chucks', 'Nut Busters', 'Shots and Thots', 'Drunk in Love (Handles)',
+  'The Last Tan Lines', 'Buttchuggers United', 'The Rainbow Road Ragers', 'Tee Baggers', 'Dick Vitale Fan Club',
+  'Hot Dog Water', 'Big Beach Balls Energy', 'The Double Bogey Boners', 'Justin’s Last Hall Pass', 'Hung Over Achievers',
+  'Well Hung Jury', 'The Swamp Crotch Society', 'Hairy Pong Hitters', 'Moist Towelettes', 'Captain Morgan’s Mistakes'
+];
+const ADJ = ['Sloppy', 'Moist', 'Throbbing', 'Sweaty', 'Limp', 'Thirsty', 'Loose', 'Hairy', 'Swollen', 'Greasy', 'Chafed', 'Dirty',
+  'Horny', 'Premature', 'Soggy', 'Hammered', 'Salty', 'Crusty', 'Rock Hard', 'Floppy', 'Well Hung', 'Wasted', 'Shameless', 'Buttered'];
+const NOUN = ['Sausages', 'Beavers', 'Wieners', 'Nuts', 'Buns', 'Cocktails', 'Taints', 'Shafts', 'Dingleberries', 'Knobs', 'Johnsons',
+  'Gooch Goblins', 'Ball Sacks', 'Butt Cheeks', 'Nipples', 'Hot Dogs', 'Meat Sticks', 'Beer Bellies', 'Boners', 'Bagpipes', 'Weenies', 'Jugs'];
+const pick = a => a[Math.floor(Math.random() * a.length)];
+function genName() { return Math.random() < 0.5 ? pick(FULL) : `The ${pick(ADJ)} ${pick(NOUN)}`; }
+
+/* ---------- Render ---------- */
+function render() {
+  const all = teams();
+  const mine = me && all.find(t => t.num === me.num);
+  const meEl = document.getElementById('me');
+
+  if (!me || editingJoin) {
+    meEl.innerHTML = `<div class="card hero">
+      <div class="row">
+        <div><label for="jName">Your name</label><input id="jName" maxlength="30" placeholder="e.g. Big Steve" value="${esc(me ? me.name : '')}" autocomplete="off"></div>
+        <div class="num"><label for="jNum">Hat #</label><input id="jNum" type="number" inputmode="numeric" min="1" max="99" placeholder="7" value="${me ? me.num : ''}"></div>
+      </div>
+      <button class="primary" id="joinBtn">FIND MY PARTNER</button>
+      ${editingJoin ? '<div style="text-align:center;margin-top:0.7rem"><button class="link" id="cancelEdit">cancel</button></div>' : ''}
+    </div>`;
+    const btn = document.getElementById('joinBtn');
+    const valid = () => document.getElementById('jName').value.trim() && +document.getElementById('jNum').value > 0;
+    const upd = () => btn.disabled = !valid();
+    ['jName', 'jNum'].forEach(id => document.getElementById(id).addEventListener('input', upd)); upd();
+    btn.addEventListener('click', join);
+    if (editingJoin) document.getElementById('cancelEdit').addEventListener('click', () => { editingJoin = false; render(); });
+  } else {
+    const mates = mine ? mine.members.filter(m => m.id !== me.id) : [];
+    const tname = mine && mine.name;
+    meEl.innerHTML = `<div class="card hero">
+      <div class="me-num">YOU'RE HAT #${me.num}</div>
+      <div class="me-team">${tname ? esc(tname) : 'Unnamed team'}</div>
+      <div class="me-mates">${mates.length
+        ? `Your partner${mates.length > 1 ? 's' : ''}: ${mates.map(m => `<b>${esc(m.name)}</b>`).join(' & ')}`
+        : `<span class="waiting">Waiting for whoever else drew #${me.num} to sign in…</span>`}</div>
+      <div class="namebox">
+        <div class="row">
+          <div><label for="tName">Team name</label><input id="tName" maxlength="40" placeholder="Name your team" value="${esc(tname || '')}" autocomplete="off"></div>
+          <button class="dice" id="genBtn" title="Generate a name">🎲</button>
+        </div>
+        <button class="primary" id="saveName">SAVE TEAM NAME</button>
+        <div class="hint">Either partner can change it. 🎲 generates something your mother wouldn't approve of.</div>
+      </div>
+      <div style="text-align:center;margin-top:0.9rem"><button class="link" id="editJoin">Not ${esc(me.name)} or wrong number? Change it</button></div>
+    </div>`;
+    document.getElementById('genBtn').addEventListener('click', () => { document.getElementById('tName').value = genName(); });
+    document.getElementById('saveName').addEventListener('click', saveTeamName);
+    document.getElementById('editJoin').addEventListener('click', () => { editingJoin = true; render(); });
+  }
+
+  const tEl = document.getElementById('teams');
+  tEl.innerHTML = all.length ? all.map(t => `<div class="team${me && t.num === me.num ? ' mine' : ''}${t.members.length < 2 ? ' solo' : ''}">
+      <div class="n">HAT #${t.num}</div>
+      <div class="tn">${t.name ? esc(t.name) : '<span style="opacity:.5">no name yet</span>'}</div>
+      <div class="ppl">${t.members.map(m => esc(m.name)).join('<br>')}${t.members.length < 2 ? '<br><span class="w">waiting on partner</span>' : ''}</div>
+    </div>`).join('') : `<div class="empty">No one's signed in yet. Be the first.</div>`;
+
+  const n = all.reduce((a, t) => a + t.members.length, 0);
+  const st = document.getElementById('status');
+  st.className = 'status' + (connected ? '' : ' err');
+  st.textContent = connected ? `${n} signed in · ${all.filter(t => t.members.length >= 2).length} full teams · updates live` : 'Reconnecting to the team board…';
+}
+
+async function join() {
+  const name = document.getElementById('jName').value.trim();
+  const num = +document.getElementById('jNum').value;
+  if (!name || !(num > 0)) return;
+  const btn = document.getElementById('joinBtn'); btn.disabled = true; btn.textContent = 'SAVING…';
+  try {
+    me = { id: devId, name, num };
+    localStorage.setItem(ME_KEY, JSON.stringify(me));
+    editingJoin = false;
+    await send({ t: 'join', id: devId, name, num });
+    toast('You’re in ✔');
+  } catch (e) {
+    btn.disabled = false; btn.textContent = 'FIND MY PARTNER';
+    toast('Couldn’t save. Check your signal and try again');
+  }
+}
+
+async function saveTeamName() {
+  const name = document.getElementById('tName').value.trim();
+  if (!name) return toast('Type a name or hit 🎲');
+  try { await send({ t: 'team', num: me.num, name, by: me.name }); toast('Team name saved ✔'); }
+  catch (e) { toast('Couldn’t save. Try again'); }
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+/* ---------- Sync: load history once, then stream live ---------- */
+async function loadAll() {
+  const r = await fetch(BASE + '/json?poll=1&since=all');
+  const text = await r.text();
+  text.split('\n').filter(Boolean).forEach(line => { try { apply(JSON.parse(line)); } catch (e) {} });
+}
+let es = null;
+function stream() {
+  if (es) es.close();
+  es = new EventSource(BASE + '/sse?since=all');
+  es.onopen = () => { connected = true; render(); };
+  es.onmessage = e => { try { apply(JSON.parse(e.data)); render(); } catch (err) {} };
+  es.onerror = () => { connected = false; render(); };
+}
+render();
+loadAll().then(() => { connected = true; render(); }).catch(() => { connected = false; render(); }).finally(stream);
+setInterval(() => { if (!connected || !es || es.readyState !== 1) loadAll().then(() => { connected = true; render(); }).catch(() => {}); }, 60000); // fallback if the live stream drops
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && (!es || es.readyState === 2)) stream(); });
+// Re-check my saved join still exists (e.g. after the 12h window), and re-post it if missing
+setTimeout(() => { if (me && connected && !people[me.id]) send({ t: 'join', id: me.id, name: me.name, num: me.num }).catch(() => {}); }, 6000);
+</script>
+</body>
+</html>
