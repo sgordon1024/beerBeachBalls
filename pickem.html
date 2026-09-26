@@ -184,6 +184,22 @@
   .lb-card h2 { font-family: 'Righteous', cursive; color: var(--cyan); font-size: 1.1rem; margin-bottom: 0.5rem; }
   .lb-card p { font-size: 0.85rem; line-height: 1.5; opacity: 0.85; }
   .lb-rules { margin-top: 0.8rem; font-size: 0.78rem; color: var(--orange); font-weight: 600; }
+  .lb-updated { font-size: 0.72rem; opacity: 0.6; margin-top: 0.6rem; }
+  .lb-row { border-top: 1px solid var(--border); text-align: left; }
+  .lb-row summary { display: flex; align-items: center; gap: 0.6rem; padding: 0.7rem 0.2rem; cursor: pointer; list-style: none; }
+  .lb-row summary::-webkit-details-marker { display: none; }
+  .lb-rank { font-family: 'Righteous', cursive; color: var(--yellow); width: 1.6rem; text-align: center; }
+  .lb-name { flex: 1; font-weight: 800; }
+  .lb-pts { text-align: right; }
+  .lb-pts b { font-family: 'Righteous', cursive; color: var(--cyan); font-size: 1.15rem; }
+  .lb-pts small { display: block; font-size: 0.68rem; opacity: 0.65; }
+  .lb-picks { list-style: none; padding: 0 0 0.7rem; font-size: 0.8rem; }
+  .lb-picks li { display: flex; gap: 0.5rem; padding: 0.25rem 0; }
+  .lb-picks .p { width: 2.2rem; text-align: right; opacity: 0.7; }
+  .lb-picks .t { flex: 1; }
+  .lb-picks .s { opacity: 0.65; font-size: 0.72rem; white-space: nowrap; }
+  .lb-picks .won .t { color: #3ee07a; }
+  .lb-picks .lost .t { opacity: 0.45; text-decoration: line-through; }
 
   .toast {
     position: fixed; left: 50%; bottom: 110px; transform: translateX(-50%);
@@ -235,8 +251,8 @@
   <div id="leaderboardTab">
     <div class="lb-card">
       <h2>LEADERBOARD</h2>
-      <p id="lbBody">📤 Step 1: go to the MY PICKS tab and hit <strong>SEND MY PICKS TO STEVE</strong>.<br>
-      The leaderboard goes up once everyone's picks are in, and updates as games finish.</p>
+      <p id="lbBody">Haven't sent your picks yet? Go to MY PICKS and hit <strong>SEND MY PICKS TO STEVE</strong>.</p>
+      <div id="lbTable"><p class="lb-updated">Loading scores…</p></div>
       <div class="lb-rules">💰 $10 buy-in · 1st takes the pot · 2nd gets their $10 back</div>
     </div>
   </div>
@@ -400,6 +416,80 @@ function showTab(which) {
   document.getElementById('leaderboardTab').style.display = which === 'lb' ? 'block' : 'none';
   document.getElementById('tabPicks').classList.toggle('active', which === 'picks');
   document.getElementById('tabLb').classList.toggle('active', which === 'lb');
+}
+
+/* ---------- LEADERBOARD ----------
+   Entries arrive by email (the BBBCODE line). Paste each one here. */
+const ENTRIES = [
+  'BBBCODE|Uncle Iroh|hcu-unt=249@15,nd-pur=87@14,vt-bc=259@13,ou-uga=61@12,tam-lsu=99@11,van-aub=2@10,tlsa-ark=8@9,jmu-odu=256@8,tcu-ucf=2628@7,tex-tenn=251@6,okst-wvu=197@5,ore-usc=30@4,iowa-mich=2294@3,ucla-md=120@2,cnu-sus=216@1',
+];
+
+function parseEntry(code) {
+  const [, name, list] = code.split('|');
+  const picks = list.split(',').map(s => {
+    const [game, rest] = s.split('=');
+    const [team, pts] = rest.split('@');
+    return { game, team: team === '-' ? null : team, pts: +pts };
+  });
+  return { name, picks };
+}
+const LB = ENTRIES.map(parseEntry);
+let results = {}; // gameId -> { state, detail, winner, scores:{tid:score} }
+
+async function fetchResults() {
+  await Promise.all(GAMES.map(async g => {
+    try {
+      const r = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/summary?event=${g.espnId}`);
+      const c = (await r.json()).header.competitions[0];
+      const scores = {};
+      let winner = null;
+      c.competitors.forEach(x => { scores[x.id] = x.score; if (x.winner) winner = x.id; });
+      const done = c.status.type.completed;
+      if (done && !winner) { // fallback: higher score wins
+        const [a, b] = c.competitors;
+        winner = +a.score > +b.score ? a.id : b.id;
+      }
+      results[g.id] = { state: c.status.type.state, detail: c.status.type.shortDetail, winner: done ? winner : null, scores };
+    } catch (e) { /* keep last known result */ }
+  }));
+  renderLeaderboard();
+}
+
+function renderLeaderboard() {
+  const rows = LB.map(e => {
+    let pts = 0, max = 0;
+    const items = e.picks.map(p => {
+      const g = byId[p.game], res = results[p.game];
+      const team = p.team === g.away.tid ? g.away : p.team === g.home.tid ? g.home : null;
+      let cls = '', status = '';
+      if (res && res.winner) {
+        if (p.team === res.winner) { cls = 'won'; pts += p.pts; max += p.pts; } else cls = 'lost';
+      } else max += p.team ? p.pts : 0;
+      if (res && res.state !== 'pre') status = `${g.away.name.split(' ')[0]} ${res.scores[g.away.tid] ?? ''}-${res.scores[g.home.tid] ?? ''} · ${res.detail}`;
+      else status = g.time;
+      return `<li class="${cls}"><span class="p">${p.pts}</span><span class="t">${team ? esc(team.name) : 'no pick'}</span><span class="s">${esc(status)}</span></li>`;
+    }).join('');
+    return { name: e.name, pts, max, items };
+  }).sort((a, b) => b.pts - a.pts || b.max - a.max);
+
+  let rank = 0, prev = null;
+  const html = rows.map((r, i) => {
+    if (r.pts !== prev) { rank = i + 1; prev = r.pts; }
+    return `<details class="lb-row"><summary>
+      <span class="lb-rank">${rank}</span><span class="lb-name">${esc(r.name)}</span>
+      <span class="lb-pts"><b>${r.pts}</b><small>max ${r.max}</small></span>
+    </summary><ul class="lb-picks">${r.items}</ul></details>`;
+  }).join('');
+  const done = Object.values(results).filter(r => r.winner).length;
+  document.getElementById('lbTable').innerHTML = html +
+    `<p class="lb-updated">${LB.length} entr${LB.length === 1 ? 'y' : 'ies'} · ${done}/${N} games final · updated ${new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})} · tap a name for picks</p>`;
+}
+
+if (isLocked()) {
+  fetchResults();
+  setInterval(fetchResults, 60000);
+} else {
+  document.getElementById('lbTable').innerHTML = '<p class="lb-updated">Leaderboard goes live when picks lock.</p>';
 }
 
 /* ---------- Send picks (no shared backend, so entries get emailed to Steve) ---------- */
