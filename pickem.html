@@ -235,7 +235,7 @@
       <strong>How it works:</strong> Tap a team to pick the winner of each game (straight up — the spread is just for reference).
       Then <strong>drag games up and down</strong> (or tap the ▲▼ arrows): your most confident pick goes on <strong>top (worth 15 pts)</strong>,
       least confident on the bottom (worth 1). Right pick = you get those points. Most points wins.
-      Edit as much as you want until <strong>noon ET Saturday</strong>.
+      <strong>Picks reopened until 1:25 PM ET.</strong> Honor system on the noon games: no peeking at scores. After you SUBMIT, tap SEND MY PICKS TO STEVE.
     </div>
 
     <div class="name-row">
@@ -271,7 +271,7 @@
 /* =====================================================
    EDIT THESE — pool settings
    ===================================================== */
-const LOCK_TIME = Date.parse('2026-09-26T16:00:00Z'); // noon ET Saturday — ALL picks lock here
+const LOCK_TIME = Date.parse('2026-09-26T17:25:00Z'); // reopened: 1:25 PM ET Saturday (honor system on noon games)
 const BACKEND = null; // TODO phase 2: paste Firebase config here to enable shared entries + live leaderboard
 
 /* Games in kickoff order. Records/ranks/spreads pulled from ESPN on Sept 21 —
@@ -381,7 +381,7 @@ function updateStatus(done) {
   btn.disabled = !(done === N && name);
   if (done < N) status.textContent = `${N - done} game${N - done === 1 ? '' : 's'} left to pick.`;
   else if (!name) status.textContent = 'Add your name up top to lock it in.';
-  else status.textContent = state.submittedAt ? 'Saved! You can keep editing until noon Sat.' : 'Ready — hit submit.';
+  else status.textContent = state.submittedAt ? 'Saved! Hit SEND MY PICKS TO STEVE above. Edits allowed until 1:25 PM ET.' : 'Ready — hit submit.';
 }
 
 async function submitEntry() {
@@ -395,7 +395,9 @@ async function submitEntry() {
   state.submittedAt = entry.updatedAt;
   save();
   if (!BACKEND) {
-    toast('Saved on this phone ✔ (shared leaderboard coming before Sat)');
+    toast('Saved ✔ Now tap SEND MY PICKS TO STEVE');
+    renderSendCard();
+    document.getElementById('sendCard').scrollIntoView({ behavior: 'smooth' });
   } else {
     // TODO phase 2: write entry to Firebase, keyed by name (one entry per person)
     toast('Entry submitted ✔');
@@ -521,8 +523,8 @@ function renderSendCard() {
   }
   const subject = `BBB Pick'em - ${state.name || 'no name'}`;
   const mailto = `mailto:${COMMISH_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(picksText())}`;
-  card.innerHTML = `<h3>📤 ONE LAST STEP</h3>
-    <p>Picks didn't sync automatically. Tap below to email your locked picks (${picked}/${N}) to Steve so you make the leaderboard.</p>
+  card.innerHTML = `<h3>📤 SEND YOUR PICKS</h3>
+    <p>Picks didn't sync automatically. Tap below to email your picks (${picked}/${N}) to Steve so you make the leaderboard. Changed picks? Hit SUBMIT again, then send again.</p>
     <div class="btns">
       <a class="primary" href="${mailto}">SEND MY PICKS TO STEVE</a>
       <button class="secondary" id="copyPicks">COPY PICKS (to text him instead)</button>
@@ -556,6 +558,7 @@ document.getElementById('entryName').addEventListener('input', () => {
 });
 render();
 tickCountdown();
+if (state.submittedAt && !isLocked()) renderSendCard();
 
 if (!isLocked()) {
   new Sortable(document.getElementById('gameList'), {
