@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>PICK 'EM BOARD — Beer Beach Balls</title>
+<title>SCOREBOARD — Beer Beach Balls</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Monoton&family=Righteous&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
@@ -89,6 +89,30 @@
   footer { font-size: calc(var(--u) * 1); opacity: 0.55; display: flex; justify-content: space-between; gap: 1rem; }
   #wake { cursor: pointer; }
 
+  /* Right panel: lawn games / football tabs */
+  #right { min-height: 0; }
+  .tabs { display: flex; gap: calc(var(--u) * 0.6); align-items: center; margin-bottom: calc(var(--u) * 0.6); }
+  .tabs button { font-family: 'Righteous', cursive; font-size: calc(var(--u) * 1.5); letter-spacing: 0.06em; background: none; border: none;
+    color: rgba(0,229,255,0.45); padding: 0; margin-right: calc(var(--u) * 0.8); cursor: pointer; }
+  .tabs button.on { color: var(--cyan); text-shadow: 0 0 calc(var(--u) * 0.8) rgba(0,229,255,0.5); }
+  .tabs .auto { margin-left: auto; font-size: calc(var(--u) * 0.95); opacity: 0.45; }
+  .pane { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: calc(var(--u) * 0.6); }
+  .pane[hidden] { display: none; }
+  .legend { font-size: calc(var(--u) * 1); opacity: 0.55; font-weight: 600; letter-spacing: 0.04em; }
+  #lawn { flex: 1; min-height: 0; display: grid; grid-template-rows: repeat(var(--n, 6), 1fr); gap: 0.6cqh; container-type: size; align-content: start; }
+  #lawn > * { --h: calc(100cqh / var(--n, 6)); }
+  .lrow { min-height: 0; overflow: hidden; display: grid; align-items: center; line-height: 1.15;
+    grid-template-columns: calc(var(--u) * 3) 1fr auto calc(var(--u) * 6.5); gap: calc(var(--u) * 1); padding: 0 calc(var(--u) * 1);
+    border-radius: calc(var(--u) * 0.8); background: var(--card); max-height: calc(var(--u) * 7); }
+  .lrow.r1 { border: 1px solid var(--yellow); background: rgba(255,230,0,0.08); }
+  .lrow .rec { font-size: min(calc(var(--u) * 1.3), calc(var(--h) * 0.28)); opacity: 0.7; }
+  .lrow .tok { text-align: right; font-family: 'Righteous', cursive; color: var(--cyan); font-size: min(calc(var(--u) * 2.6), calc(var(--h) * 0.5)); }
+  .lempty { opacity: 0.6; font-size: calc(var(--u) * 1.4); padding: 1rem 0; }
+  #lawnFeed { display: flex; flex-direction: column; gap: calc(var(--u) * 0.35); }
+  .lres { font-size: calc(var(--u) * 1.15); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lres b { color: var(--green); }
+  .lres span { opacity: 0.55; font-size: 0.9em; }
+
   @media (orientation: portrait) {
     :root { --u: min(1.35vw, 0.95vh); }
     main { grid-template-columns: 1fr; grid-template-rows: 1.55fr 1fr; }
@@ -99,7 +123,7 @@
 </head>
 <body>
 <header>
-  <h1>PICK 'EM</h1>
+  <h1>SCOREBOARD</h1>
   <div class="meta">
     <div class="clock" id="clock">--:--</div>
     <div id="summary">Loading…</div>
@@ -108,12 +132,19 @@
 
 <main>
   <section>
-    <h2>STANDINGS <small>🏆 = chance to win the pot · 2nd gets their $10 back</small></h2>
+    <h2>🏈 PICK 'EM <small>🏆 = chance to win the pot · 2nd gets their $10 back</small></h2>
     <div id="standings"></div>
   </section>
-  <section>
-    <h2>GAMES <small>pink bar = away win odds · # = how many of us picked them</small></h2>
-    <div id="games"></div>
+  <section id="right">
+    <div class="tabs"><button id="tabLawn" class="on">🍻 LAWN GAMES</button><button id="tabFb">🏈 GAMES</button><span class="auto" id="autoNote">switches every 20s · tap to pick</span></div>
+    <div class="pane" id="paneLawn">
+      <div id="lawn"></div>
+      <div id="lawnFeed"></div>
+    </div>
+    <div class="pane" id="paneFb" hidden>
+      <div class="legend">pink bar = away win odds · # = how many of us picked them</div>
+      <div id="games"></div>
+    </div>
   </section>
 </main>
 
@@ -123,6 +154,7 @@
 </footer>
 
 <script src="pool.js"></script>
+<script src="teams.js"></script>
 <script>
 const LOCK_TIME = Date.parse('2026-09-26T17:25:00Z'); // keep in sync with pickem.html
 const locked = () => Date.now() >= LOCK_TIME;
@@ -193,7 +225,39 @@ function renderMeta() {
     : 'Picks lock at 1:25 PM. Pick details show up here after lock.';
 }
 
-function renderAll() { renderStandings(); renderGames(); renderMeta(); }
+function renderLawn() {
+  const rows = Teams.standings().filter(r => r.members.length || r.wins || r.losses);
+  const el = document.getElementById('lawn');
+  el.style.setProperty('--n', Math.max(rows.length, 6));
+  el.innerHTML = rows.length ? rows.map(r => {
+    const games = Object.entries(r.byGame).map(([g, n]) => `${Teams.gameInfo(g).emoji}${n > 1 ? '×' + n : ''}`).join(' ');
+    return `<div class="lrow${r.wins && r.rank === 1 ? ' r1' : ''}">
+      <div class="rank">${r.wins ? r.rank : '–'}</div>
+      <div class="who"><div class="name">${esc(r.name)}</div><div class="sub">${r.members.map(m => esc(m.name)).join(' & ')}${games ? ' · ' + games : ''}</div></div>
+      <div class="rec">${r.wins}-${r.losses}</div>
+      <div class="tok">🪙${r.wins}</div>
+    </div>`; }).join('') : '<div class="lempty">No teams yet. Sign in at beerbeachballs.com/teams.html</div>';
+  const feed = Teams.feed().slice(0, 4);
+  document.getElementById('lawnFeed').innerHTML = feed.length
+    ? '<div class="legend">LATEST</div>' + feed.map(r => `<div class="lres">${Teams.gameInfo(r.game).emoji} <b>${esc(Teams.label(r.winner))}</b> beat ${r.losers.map(n => esc(Teams.label(n))).join(', ')}${r.score ? ' <span>(' + esc(r.score) + ')</span>' : ''} <span>${new Date(r.time * 1000).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</span></div>`).join('')
+    : '<div class="legend">Log games at beerbeachballs.com/teams.html</div>';
+}
+
+let pane = 'lawn', lastTap = 0;
+function showPane(which) {
+  pane = which;
+  document.getElementById('paneLawn').hidden = which !== 'lawn';
+  document.getElementById('paneFb').hidden = which !== 'fb';
+  document.getElementById('tabLawn').classList.toggle('on', which === 'lawn');
+  document.getElementById('tabFb').classList.toggle('on', which === 'fb');
+}
+document.getElementById('tabLawn').addEventListener('click', e => { e.stopPropagation(); lastTap = Date.now(); showPane('lawn'); keepAwake(); });
+document.getElementById('tabFb').addEventListener('click', e => { e.stopPropagation(); lastTap = Date.now(); showPane('fb'); keepAwake(); });
+setInterval(() => { if (Date.now() - lastTap > 60000) showPane(pane === 'lawn' ? 'fb' : 'lawn'); }, 20000); // pauses a minute after a tap
+
+function renderAll() { renderStandings(); renderGames(); renderLawn(); renderMeta(); }
+Teams.onChange(() => renderLawn());
+Teams.start();
 function tickClock() {
   document.getElementById('clock').textContent = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 }

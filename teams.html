@@ -60,7 +60,7 @@
   .team .ppl .w { color: var(--orange); font-size: 0.8rem; }
   .team .who { background: none; border: none; padding: 0; color: inherit; font: inherit; font-size: 0.9rem; cursor: pointer; text-align: left; }
   .empty { opacity: 0.6; font-size: 0.9rem; text-align: center; padding: 1rem; }
-  .games { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.6rem; }
+  .xgames { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.6rem; }
   .game { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 0.8rem; text-align: center; font-weight: 700; }
   .game .e { font-size: 1.6rem; display: block; margin-bottom: 0.2rem; }
   .game small { display: block; font-weight: 600; opacity: 0.55; font-size: 0.72rem; margin-top: 0.2rem; }
@@ -70,92 +70,77 @@
     color: var(--cyan); padding: 0.6rem 1.2rem; border-radius: 999px; font-size: 0.85rem; font-weight: 600; opacity: 0; pointer-events: none;
     transition: opacity 0.3s; z-index: 200; white-space: nowrap; }
   .toast.show { opacity: 1; }
+  .hero-top { display: flex; justify-content: space-between; align-items: center; }
+  .mini { width: 100%; display: flex; align-items: center; gap: 0.8rem; text-align: left; color: inherit; font-family: 'Inter'; border: 1px solid var(--pink); padding: 0.7rem 0.9rem; }
+  .mini-num { font-family: 'Righteous', cursive; color: var(--yellow); font-size: 1.3rem; }
+  .mini-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .mini-team { font-family: 'Righteous', cursive; color: var(--pink); font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mini-mates { font-size: 0.8rem; opacity: 0.85; }
+  .mini-mates b { color: var(--cyan); }
+  .mini-chev { color: var(--cyan); font-size: 1rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .chip { font-family: 'Inter'; font-weight: 700; font-size: 0.85rem; padding: 0.5rem 0.75rem; border-radius: 999px; background: rgba(255,255,255,0.05);
+    color: #f0eaff; border: 1px solid rgba(255,255,255,0.18); }
+  .chip.on { background: rgba(255,45,149,0.2); border-color: var(--pink); color: #fff; }
+  .st-row { display: flex; align-items: center; gap: 0.7rem; padding: 0.6rem 0; border-bottom: 1px solid rgba(0,229,255,0.15); }
+  .st-row:last-child { border-bottom: none; }
+  .st-row.mine .st-name { color: var(--pink); }
+  .st-rank { font-family: 'Righteous', cursive; color: var(--yellow); width: 1.4rem; text-align: center; font-size: 1.1rem; }
+  .st-who { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .st-name { font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .st-sub { font-size: 0.75rem; opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .st-rec { font-size: 0.8rem; opacity: 0.7; }
+  .st-tok { font-family: 'Righteous', cursive; color: var(--cyan); font-size: 1.15rem; min-width: 3rem; text-align: right; }
+  .res { display: flex; gap: 0.7rem; align-items: flex-start; background: var(--card); border: 1px solid rgba(0,229,255,0.2); border-radius: 12px; padding: 0.7rem 0.8rem; margin-bottom: 0.5rem; }
+  .res-e { font-size: 1.4rem; line-height: 1.2; }
+  .res-body { flex: 1; font-size: 0.9rem; line-height: 1.4; }
+  .res-body b { color: var(--green); }
+  .res-meta { display: block; font-size: 0.72rem; opacity: 0.6; }
+  .undo { background: none; color: rgba(255,255,255,0.4); padding: 0.2rem 0.4rem; font-size: 0.9rem; font-family: 'Inter'; }
+  .primary:disabled { opacity: 0.45; box-shadow: none; }
 </style>
 </head>
 <body>
 <nav>
   <a href="index.html">🏖️ BEERBEACHBALLS</a>
-  <div class="links"><a href="pickem.html">Pick 'Em</a><a href="board.html">Board</a></div>
+  <div class="links"><a href="pickem.html">Pick 'Em</a><a href="board.html">Scoreboard</a></div>
 </nav>
 
 <div class="wrap">
   <h1>TEAMS</h1>
-  <div class="sub">Drew a number out of the hat? Punch it in to find your partner.</div>
+  <div class="sub">Find your partner, name your team, log your wins. 1 token per win.</div>
 
   <div id="me"></div>
 
+  <h2>🏁 LOG A GAME</h2>
+  <div class="card" id="logCard"></div>
+
+  <h2>🏆 LAWN GAMES STANDINGS</h2>
+  <div id="standings"></div>
+
+  <h2>📜 RESULTS</h2>
+  <div id="feed"></div>
+
   <h2>🍻 ALL TEAMS</h2>
   <div id="teams" class="teams"></div>
-
-  <h2>🏆 THE GAMES</h2>
-  <div class="games">
-    <div class="game"><span class="e">🥅</span>Putter Ball<small>scoring TBD</small></div>
-    <div class="game"><span class="e">🥤</span>Flip Cup<small>scoring TBD</small></div>
-    <div class="game"><span class="e">🏓</span>Beer Pong<small>scoring TBD</small></div>
-    <div class="game"><span class="e">🌽</span>Cornhole<small>scoring TBD</small></div>
-    <div class="game"><span class="e">🏎️</span>Mario Kart 64<small>scoring TBD</small></div>
-  </div>
 
   <div class="status" id="status">Connecting…</div>
 </div>
 <div class="toast" id="toast"></div>
 
+<script src="teams.js"></script>
 <script>
-/* Shared state lives in an ntfy.sh topic as an append-only log of small JSON events.
-   Events: {t:'join', id, name, num} · {t:'leave', id} · {t:'team', num, name, by}
-   ntfy.sh keeps messages for 12 hours. */
-const TOPIC = 'bbb-teams-7f3c91e2b54d';
-const BASE = 'https://ntfy.sh/' + TOPIC;
-const ME_KEY = 'bbb_teams_me';
-
-let me = null;               // { id, name, num }  (remembered on this phone when the browser allows it)
-try { me = JSON.parse(localStorage.getItem(ME_KEY)); } catch (e) {}
-function remember() { try { localStorage.setItem(ME_KEY, JSON.stringify(me)); } catch (e) { /* private browsing: fine, it's saved on the board */ } }
-// A person's id is their name, so signing in again (new phone, private tab) updates the same entry instead of duplicating it
-const idFor = name => 'n:' + name.trim().toLowerCase().replace(/\s+/g, ' ');
-if (me && me.id && !me.id.startsWith('n:')) me.id = idFor(me.name);
-
-const seen = new Set();
-const people = {};           // id -> { name, num, time }
-const teamNames = {};        // num -> { name, time }
-let connected = false;
+const ME_KEY = 'bbb_teams_me', MIN_KEY = 'bbb_teams_min';
+const store = { get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
+                set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* private browsing: fine, it's saved on the board */ } } };
+let me = store.get(ME_KEY);                 // { id, name, num }
+if (me && me.id && !me.id.startsWith('n:')) me.id = Teams.idFor(me.name);
+let minimized = store.get(MIN_KEY);         // null = decide automatically
 let editingJoin = false;
+const log = { game: null, other: '', winner: null, losers: new Set(), score: '' };
 
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
-
-function apply(msg) {
-  if (!msg || msg.event !== 'message' || seen.has(msg.id)) return;
-  seen.add(msg.id);
-  let ev; try { ev = JSON.parse(msg.message); } catch (e) { return; }
-  const t = msg.time;
-  if (ev.t === 'join' && ev.id && ev.name && ev.num) {
-    if (!people[ev.id] || people[ev.id].time <= t) people[ev.id] = { name: String(ev.name).slice(0, 30), num: +ev.num, time: t };
-  } else if (ev.t === 'leave' && ev.id) {
-    if (!people[ev.id] || people[ev.id].time <= t) people[ev.id] = { gone: true, time: t };
-  } else if (ev.t === 'team' && ev.num) {
-    if (!teamNames[ev.num] || teamNames[ev.num].time <= t) teamNames[ev.num] = { name: String(ev.name || '').slice(0, 40), time: t };
-  }
-}
-
-async function send(ev) {
-  const r = await fetch(BASE, { method: 'POST', body: JSON.stringify(ev) });
-  if (!r.ok) throw new Error('send failed ' + r.status);
-  const msg = await r.json();
-  apply(msg); render();
-}
-
-function teams() {
-  const byNum = {};
-  const latest = {}; // collapse old device-based entries that share a name
-  Object.entries(people).forEach(([id, p]) => { if (!p.gone) { const k = idFor(p.name); if (!latest[k] || latest[k].time < p.time) latest[k] = { id, time: p.time }; } });
-  Object.entries(people).forEach(([id, p]) => {
-    if (p.gone || latest[idFor(p.name)].id !== id) return;
-    (byNum[p.num] = byNum[p.num] || []).push({ id, ...p });
-  });
-  return Object.keys(byNum).map(Number).sort((a, b) => a - b).map(n => ({
-    num: n, members: byNum[n].sort((a, b) => a.time - b.time), name: teamNames[n] && teamNames[n].name
-  }));
-}
+const timeStr = t => new Date(t * 1000).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
 /* ---------- Team name generator (bachelor party grade) ---------- */
 const FULL = [
@@ -174,14 +159,13 @@ const NOUN = ['Sausages', 'Beavers', 'Wieners', 'Nuts', 'Buns', 'Cocktails', 'Ta
 const pick = a => a[Math.floor(Math.random() * a.length)];
 function genName() { return Math.random() < 0.5 ? pick(FULL) : `The ${pick(ADJ)} ${pick(NOUN)}`; }
 
-/* ---------- Render ---------- */
-function render() {
-  const all = teams();
+/* ---------- My card ---------- */
+function renderMe() {
+  const all = Teams.teams();
   const mine = me && all.find(t => t.num === me.num);
-  const meEl = document.getElementById('me');
-
+  const el = document.getElementById('me');
   if (!me || editingJoin) {
-    meEl.innerHTML = `<div class="card hero">
+    el.innerHTML = `<div class="card hero">
       <div class="row">
         <div><label for="jName">Your name</label><input id="jName" maxlength="30" placeholder="e.g. Big Steve" value="${esc(me ? me.name : '')}" autocomplete="off"></div>
         <div class="num"><label for="jNum">Hat #</label><input id="jNum" type="number" inputmode="numeric" min="1" max="99" placeholder="7" value="${me ? me.num : ''}"></div>
@@ -191,54 +175,149 @@ function render() {
       ${editingJoin ? '<div style="text-align:center;margin-top:0.7rem"><button class="link" id="cancelEdit">cancel</button></div>' : ''}
     </div>`;
     const btn = document.getElementById('joinBtn');
-    const valid = () => document.getElementById('jName').value.trim() && +document.getElementById('jNum').value > 0;
-    const upd = () => btn.disabled = !valid();
+    const upd = () => btn.disabled = !(document.getElementById('jName').value.trim() && +document.getElementById('jNum').value > 0);
     ['jName', 'jNum'].forEach(id => document.getElementById(id).addEventListener('input', upd)); upd();
     btn.addEventListener('click', join);
-    if (editingJoin) document.getElementById('cancelEdit').addEventListener('click', () => { editingJoin = false; render(); });
-  } else {
-    const mates = mine ? mine.members.filter(m => m.id !== me.id) : [];
-    const tname = mine && mine.name;
-    meEl.innerHTML = `<div class="card hero">
-      <div class="me-num">YOU'RE HAT #${me.num}</div>
-      <div class="me-team">${tname ? esc(tname) : 'Unnamed team'}</div>
-      <div class="me-mates">${mates.length
-        ? `Your partner${mates.length > 1 ? 's' : ''}: ${mates.map(m => `<b>${esc(m.name)}</b>`).join(' & ')}`
-        : `<span class="waiting">Waiting for whoever else drew #${me.num} to sign in…</span>`}</div>
-      <div class="namebox">
-        <div class="row">
-          <div><label for="tName">Team name</label><input id="tName" maxlength="40" placeholder="Name your team" value="${esc(tname || '')}" autocomplete="off"></div>
-          <button class="dice" id="genBtn" title="Generate a name">🎲</button>
-        </div>
-        <button class="primary" id="saveName">SAVE TEAM NAME</button>
-        <div class="hint">Either partner can change it. 🎲 generates something your mother wouldn't approve of.</div>
-      </div>
-      <div style="text-align:center;margin-top:0.9rem"><button class="link" id="editJoin">Not ${esc(me.name)} or wrong number? Change it</button></div>
-    </div>`;
-    document.getElementById('genBtn').addEventListener('click', () => { document.getElementById('tName').value = genName(); });
-    document.getElementById('saveName').addEventListener('click', saveTeamName);
-    document.getElementById('editJoin').addEventListener('click', () => { editingJoin = true; render(); });
+    if (editingJoin) document.getElementById('cancelEdit').addEventListener('click', () => { editingJoin = false; renderMe(); });
+    return;
   }
+  const mates = mine ? mine.members.filter(m => m.id !== me.id) : [];
+  const tname = mine && mine.name;
+  const isMin = minimized === null ? !!tname : minimized;
+  const mateLine = mates.length ? `with ${mates.map(m => `<b>${esc(m.name)}</b>`).join(' & ')}` : `<span class="waiting">waiting on your partner</span>`;
+  if (isMin) {
+    el.innerHTML = `<button class="card mini" id="expand">
+      <span class="mini-num">#${me.num}</span>
+      <span class="mini-body"><span class="mini-team">${tname ? esc(tname) : 'Unnamed team'}</span><span class="mini-mates">${esc(me.name)} ${mateLine}</span></span>
+      <span class="mini-chev">▾</span></button>`;
+    document.getElementById('expand').addEventListener('click', () => { minimized = false; store.set(MIN_KEY, false); renderMe(); });
+    return;
+  }
+  el.innerHTML = `<div class="card hero">
+    <div class="hero-top"><div class="me-num">YOU'RE HAT #${me.num}</div><button class="link" id="collapse">minimize ▴</button></div>
+    <div class="me-team">${tname ? esc(tname) : 'Unnamed team'}</div>
+    <div class="me-mates">${mates.length
+      ? `Your partner${mates.length > 1 ? 's' : ''}: ${mates.map(m => `<b>${esc(m.name)}</b>`).join(' & ')}`
+      : `<span class="waiting">Waiting for whoever else drew #${me.num} to sign in…</span>`}</div>
+    <div class="namebox">
+      <div class="row">
+        <div><label for="tName">Team name</label><input id="tName" maxlength="40" placeholder="Name your team" value="${esc(tname || '')}" autocomplete="off"></div>
+        <button class="dice" id="genBtn" title="Generate a name">🎲</button>
+      </div>
+      <button class="primary" id="saveName">SAVE TEAM NAME</button>
+      <div class="hint">Either partner can change it. 🎲 generates something your mother wouldn't approve of.</div>
+    </div>
+    <div style="text-align:center;margin-top:0.9rem"><button class="link" id="editJoin">Not ${esc(me.name)} or wrong number? Change it</button></div>
+  </div>`;
+  document.getElementById('collapse').addEventListener('click', () => { minimized = true; store.set(MIN_KEY, true); renderMe(); });
+  document.getElementById('genBtn').addEventListener('click', () => { document.getElementById('tName').value = genName(); });
+  document.getElementById('saveName').addEventListener('click', saveTeamName);
+  document.getElementById('editJoin').addEventListener('click', () => { editingJoin = true; renderMe(); });
+}
 
+/* ---------- Log a game ---------- */
+function renderLog() {
+  const all = Teams.teams();
+  const el = document.getElementById('logCard');
+  if (all.length < 2) { el.innerHTML = `<div class="empty">Once two teams have signed in, log games here.</div>`; return; }
+  if (log.winner === null && me && all.some(t => t.num === me.num)) log.winner = me.num;
+  const chip = (on, attrs, text) => `<button class="chip${on ? ' on' : ''}" ${attrs}>${text}</button>`;
+  el.innerHTML = `
+    <label>Game</label>
+    <div class="chips">${Teams.GAMES.map(g => chip(log.game === g.id, `data-game="${g.id}"`, `${g.emoji} ${g.name}`)).join('')}
+      ${chip(log.game === 'other', 'data-game="other"', '🎯 Other')}</div>
+    ${log.game === 'other' ? `<input id="otherGame" maxlength="30" placeholder="What game? (e.g. Kan Jam, Stump)" value="${esc(log.other)}" style="margin-top:0.5rem">` : ''}
+    <label style="margin-top:0.9rem">🏆 Winner</label>
+    <div class="chips">${all.map(t => chip(log.winner === t.num, `data-win="${t.num}"`, esc(Teams.label(t.num)))).join('')}</div>
+    <label style="margin-top:0.9rem">💀 Beat <span style="text-transform:none;letter-spacing:0;opacity:.6;font-weight:600">(pick everyone who lost, e.g. all 3 in Mario Kart)</span></label>
+    <div class="chips">${all.filter(t => t.num !== log.winner).map(t => chip(log.losers.has(t.num), `data-lose="${t.num}"`, esc(Teams.label(t.num)))).join('')}</div>
+    <label style="margin-top:0.9rem" for="score">Score <span style="text-transform:none;letter-spacing:0;opacity:.6;font-weight:600">(optional)</span></label>
+    <input id="score" maxlength="30" placeholder="e.g. 21-15, 2 cups left" value="${esc(log.score)}">
+    <button class="primary" id="logBtn" style="margin-top:1rem">LOG IT</button>`;
+  el.querySelectorAll('[data-game]').forEach(b => b.addEventListener('click', () => { log.game = b.dataset.game; renderLog(); }));
+  el.querySelectorAll('[data-win]').forEach(b => b.addEventListener('click', () => { log.winner = +b.dataset.win; log.losers.delete(log.winner); renderLog(); }));
+  el.querySelectorAll('[data-lose]').forEach(b => b.addEventListener('click', () => { const n = +b.dataset.lose; log.losers.has(n) ? log.losers.delete(n) : log.losers.add(n); renderLog(); }));
+  const other = document.getElementById('otherGame'); if (other) other.addEventListener('input', () => { log.other = other.value; upd(); });
+  const score = document.getElementById('score'); score.addEventListener('input', () => { log.score = score.value; });
+  const btn = document.getElementById('logBtn');
+  const upd = () => btn.disabled = !(log.game && (log.game !== 'other' || log.other.trim()) && log.winner && log.losers.size);
+  upd();
+  btn.addEventListener('click', submitResult);
+}
+
+async function submitResult() {
+  const btn = document.getElementById('logBtn'); btn.disabled = true; btn.textContent = 'LOGGING…';
+  const game = log.game === 'other' ? log.other.trim() : log.game;
+  try {
+    await Teams.send({ t: 'result', rid: Teams.newRid(), game, winner: log.winner, losers: [...log.losers], score: log.score.trim(), by: me ? me.name : '' });
+    toast(`🪙 Token to ${Teams.label(log.winner)}`);
+    log.game = null; log.other = ''; log.losers = new Set(); log.score = ''; log.winner = me ? me.num : null;
+    renderAll();
+  } catch (e) { btn.disabled = false; btn.textContent = 'LOG IT'; toast('Couldn’t save. Try again'); }
+}
+
+/* ---------- Standings, feed, teams ---------- */
+function renderStandings() {
+  const rows = Teams.standings();
+  const el = document.getElementById('standings');
+  if (!rows.length) { el.innerHTML = `<div class="empty">No teams yet.</div>`; return; }
+  el.innerHTML = `<div class="card" style="padding:0.3rem 0.9rem">${rows.map(r => {
+    const games = Object.entries(r.byGame).map(([g, n]) => `${Teams.gameInfo(g).emoji}${n > 1 ? '×' + n : ''}`).join(' ');
+    return `<div class="st-row${me && r.num === me.num ? ' mine' : ''}">
+      <span class="st-rank">${r.wins ? r.rank : '–'}</span>
+      <span class="st-who"><span class="st-name">${esc(r.name)}</span><span class="st-sub">${r.members.map(m => esc(m.name)).join(' & ') || 'Team #' + r.num}${games ? ' · ' + games : ''}</span></span>
+      <span class="st-rec">${r.wins}-${r.losses}</span>
+      <span class="st-tok">🪙 ${r.wins}</span>
+    </div>`; }).join('')}</div>`;
+}
+
+function renderFeed() {
+  const items = Teams.feed();
+  const el = document.getElementById('feed');
+  if (!items.length) { el.innerHTML = `<div class="empty">No games logged yet. Go win something.</div>`; return; }
+  el.innerHTML = items.slice(0, 40).map(r => {
+    const g = Teams.gameInfo(r.game);
+    return `<div class="res">
+      <span class="res-e">${g.emoji}</span>
+      <span class="res-body"><b>${esc(Teams.label(r.winner))}</b> beat ${r.losers.map(n => esc(Teams.label(n))).join(', ')}
+        <span class="res-meta">${esc(g.name)}${r.score ? ' · ' + esc(r.score) : ''} · ${timeStr(r.time)}${r.by ? ' · logged by ' + esc(r.by) : ''}</span></span>
+      <button class="undo" data-rid="${esc(r.rid)}" title="Undo">✕</button>
+    </div>`;
+  }).join('') + (items.length > 40 ? `<div class="empty">+ ${items.length - 40} older</div>` : '');
+  el.querySelectorAll('.undo').forEach(b => b.addEventListener('click', async () => {
+    if (!confirm('Remove this game from the scoreboard?')) return;
+    try { await Teams.send({ t: 'void', rid: b.dataset.rid, by: me ? me.name : '' }); toast('Removed'); } catch (e) { toast('Couldn’t remove. Try again'); }
+  }));
+}
+
+function renderTeams() {
+  const all = Teams.teams().filter(t => t.members.length);
   const tEl = document.getElementById('teams');
   tEl.innerHTML = all.length ? all.map(t => `<div class="team${me && t.num === me.num ? ' mine' : ''}${t.members.length < 2 ? ' solo' : ''}">
       <div class="n">HAT #${t.num}</div>
       <div class="tn">${t.name ? esc(t.name) : '<span style="opacity:.5">no name yet</span>'}</div>
       <div class="ppl">${t.members.map(m => `<button class="who" data-id="${esc(m.id)}">${esc(m.name)}</button>`).join('<br>')}${t.members.length < 2 ? '<br><span class="w">waiting on partner</span>' : ''}</div>
     </div>`).join('') : `<div class="empty">No one's signed in yet. Be the first.</div>`;
-
   tEl.querySelectorAll('.who').forEach(b => b.addEventListener('click', () => {
-    const p = people[b.dataset.id]; if (!p || p.gone) return;
-    if (me && me.id === b.dataset.id) return;
-    if (confirm(`Are you ${p.name}?`)) { me = { id: b.dataset.id, name: p.name, num: p.num }; remember(); editingJoin = false; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    const p = Teams.people[b.dataset.id]; if (!p || p.gone || (me && me.id === b.dataset.id)) return;
+    if (confirm(`Are you ${p.name}?`)) { me = { id: b.dataset.id, name: p.name, num: p.num }; store.set(ME_KEY, me); editingJoin = false; renderAll(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
   }));
-
   const n = all.reduce((a, t) => a + t.members.length, 0);
   const st = document.getElementById('status');
-  st.className = 'status' + (connected ? '' : ' err');
-  st.textContent = connected ? `${n} signed in · ${all.filter(t => t.members.length >= 2).length} full teams · updates live` : 'Reconnecting to the team board…';
+  st.className = 'status' + (Teams.connected ? '' : ' err');
+  st.textContent = Teams.connected ? `${n} signed in · ${all.filter(t => t.members.length >= 2).length} full teams · ${Teams.feed().length} games logged · updates live` : 'Reconnecting to the team board…';
 }
 
+function renderAll() {
+  // don't clobber a field someone is typing in
+  const a = document.activeElement;
+  const typing = a && a.tagName === 'INPUT';
+  if (!(typing && document.getElementById('me').contains(a))) renderMe();
+  if (!(typing && document.getElementById('logCard').contains(a))) renderLog();
+  renderStandings(); renderFeed(); renderTeams();
+}
+
+/* ---------- Actions ---------- */
 async function join() {
   const name = document.getElementById('jName').value.trim();
   const num = +document.getElementById('jNum').value;
@@ -246,50 +325,30 @@ async function join() {
   const btn = document.getElementById('joinBtn'); btn.disabled = true; btn.textContent = 'SAVING…';
   try {
     const oldId = me && me.id;
-    me = { id: idFor(name), name, num };
-    remember();
-    editingJoin = false;
-    if (oldId && oldId !== me.id && people[oldId] && !people[oldId].gone) await send({ t: 'leave', id: oldId });
-    await send({ t: 'join', id: me.id, name, num });
+    me = { id: Teams.idFor(name), name, num }; store.set(ME_KEY, me);
+    editingJoin = false; log.winner = num;
+    const p = Teams.people;
+    if (oldId && oldId !== me.id && p[oldId] && !p[oldId].gone) await Teams.send({ t: 'leave', id: oldId });
+    await Teams.send({ t: 'join', id: me.id, name, num });
     toast('You’re in ✔');
-  } catch (e) {
-    btn.disabled = false; btn.textContent = 'FIND MY PARTNER';
-    toast('Couldn’t save. Check your signal and try again');
-  }
+  } catch (e) { btn.disabled = false; btn.textContent = 'FIND MY PARTNER'; toast('Couldn’t save. Check your signal and try again'); }
 }
-
 async function saveTeamName() {
   const name = document.getElementById('tName').value.trim();
   if (!name) return toast('Type a name or hit 🎲');
-  try { await send({ t: 'team', num: me.num, name, by: me.name }); toast('Team name saved ✔'); }
+  try { await Teams.send({ t: 'team', num: me.num, name, by: me.name }); minimized = true; store.set(MIN_KEY, true); toast('Team name saved ✔'); renderAll(); }
   catch (e) { toast('Couldn’t save. Try again'); }
 }
-
 function toast(msg) {
   const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2600);
 }
 
-/* ---------- Sync: load history once, then stream live ---------- */
-async function loadAll() {
-  const r = await fetch(BASE + '/json?poll=1&since=all');
-  const text = await r.text();
-  text.split('\n').filter(Boolean).forEach(line => { try { apply(JSON.parse(line)); } catch (e) {} });
-}
-let es = null;
-function stream() {
-  if (es) es.close();
-  es = new EventSource(BASE + '/sse?since=all');
-  es.onopen = () => { connected = true; render(); };
-  es.onmessage = e => { try { apply(JSON.parse(e.data)); render(); } catch (err) {} };
-  es.onerror = () => { connected = false; render(); };
-}
-render();
-loadAll().then(() => { connected = true; render(); }).catch(() => { connected = false; render(); }).finally(stream);
-setInterval(() => { if (!connected || !es || es.readyState !== 1) loadAll().then(() => { connected = true; render(); }).catch(() => {}); }, 60000); // fallback if the live stream drops
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && (!es || es.readyState === 2)) stream(); });
-// Re-check my saved join still exists (e.g. after the 12h window), and re-post it if missing
-setTimeout(() => { if (me && connected && !people[me.id]) send({ t: 'join', id: me.id, name: me.name, num: me.num }).catch(() => {}); }, 6000);
+Teams.onChange(renderAll);
+renderAll();
+Teams.start();
+// If my sign-in aged out of the 12-hour window, re-post it
+setTimeout(() => { if (me && Teams.connected && !Teams.people[me.id]) Teams.send({ t: 'join', id: me.id, name: me.name, num: me.num }).catch(() => {}); }, 6000);
 </script>
 </body>
 </html>

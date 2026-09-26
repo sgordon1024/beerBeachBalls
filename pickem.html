@@ -227,7 +227,7 @@
 
   <div class="tabs">
     <button id="tabPicks" class="active" onclick="showTab('picks')">MY PICKS</button>
-    <button id="tabLb" onclick="showTab('lb')">LEADERBOARD</button>
+    <button id="tabLb" onclick="showTab('lb')">SCOREBOARD</button>
   </div>
 
   <div id="picksTab">
@@ -253,10 +253,15 @@
 
   <div id="leaderboardTab">
     <div class="lb-card">
-      <h2>LEADERBOARD</h2>
+      <h2>🏈 PICK 'EM</h2>
       <p id="lbBody">Haven't sent your picks yet? Go to MY PICKS and hit <strong>SEND MY PICKS TO STEVE</strong>.</p>
       <div id="lbTable"><p class="lb-updated">Loading scores…</p></div>
       <div class="lb-rules">💰 $10 buy-in · 1st takes the pot · 2nd gets their $10 back</div>
+    </div>
+    <div class="lb-card" style="margin-top:1rem">
+      <h2>🍻 LAWN GAMES</h2>
+      <div id="lawnTable"><p class="lb-updated">Loading…</p></div>
+      <div class="lb-rules">🪙 1 token per win · <a href="teams.html" style="color:var(--cyan)">log a game →</a></div>
     </div>
   </div>
 </div>
@@ -271,6 +276,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="pool.js"></script>
+<script src="teams.js"></script>
 <script>
 /* =====================================================
    EDIT THESE — pool settings
@@ -446,6 +452,18 @@ function renderLeaderboard() {
      🏆 = chance to win the pot, from 4,000 simulations using live ESPN win odds · <a href="board.html" style="color:var(--cyan)">📺 big-screen board</a></p>`;
 }
 function fmtPct(x) { return x >= 99.5 ? '99%+' : x > 0 && x < 1 ? '<1%' : Math.round(x) + '%'; }
+
+function renderLawn() {
+  const rows = Teams.standings().filter(r => r.members.length || r.wins || r.losses);
+  document.getElementById('lawnTable').innerHTML = rows.length ? rows.map(r => {
+    const games = Object.entries(r.byGame).map(([g, n]) => `${Teams.gameInfo(g).emoji}${n > 1 ? '×' + n : ''}`).join(' ');
+    return `<div class="lb-row"><summary><span class="lb-rank">${r.wins ? r.rank : '–'}</span>
+      <span class="lb-name">${esc(r.name)}<div class="lb-stats"><span>${r.members.map(m => esc(m.name)).join(' & ')}</span>${games ? `<span>${games}</span>` : ''}<span>${r.wins}-${r.losses}</span></div></span>
+      <span class="lb-pts"><b>🪙${r.wins}</b></span></summary></div>`; }).join('')
+    : '<p class="lb-updated">No teams yet. <a href="teams.html" style="color:var(--cyan)">Sign in with your hat number →</a></p>';
+}
+Teams.onChange(renderLawn);
+Teams.start();
 
 async function tickLeaderboard() { await Pool.refresh(); renderLeaderboard(); }
 renderLeaderboard();
