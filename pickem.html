@@ -200,6 +200,9 @@
   .lb-picks .s { opacity: 0.65; font-size: 0.72rem; white-space: nowrap; }
   .lb-picks .won .t { color: #3ee07a; }
   .lb-picks .lost .t { opacity: 0.45; text-decoration: line-through; }
+  .lb-name { display: flex; flex-direction: column; }
+  .lb-stats { display: flex; flex-wrap: wrap; gap: 0.25rem 0.6rem; font-weight: 600; font-size: 0.7rem; opacity: 0.8; margin-top: 0.2rem; }
+  .lb-stats .sweat { color: var(--orange); flex-basis: 100%; }
 
   .toast {
     position: fixed; left: 50%; bottom: 110px; transform: translateX(-50%);
@@ -267,6 +270,7 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="pool.js"></script>
 <script>
 /* =====================================================
    EDIT THESE — pool settings
@@ -274,25 +278,7 @@
 const LOCK_TIME = Date.parse('2026-09-26T17:25:00Z'); // reopened: 1:25 PM ET Saturday (honor system on noon games)
 const BACKEND = null; // TODO phase 2: paste Firebase config here to enable shared entries + live leaderboard
 
-/* Games in kickoff order. Records/ranks/spreads pulled from ESPN on Sept 21 —
-   refresh before Saturday. rank = current AP Top 25. spread null = no line (small schools). */
-const GAMES = [
-  { id:'vt-bc',    espnId:'401858242', time:'12:00 PM', spread:'VT -14',    away:{tid:'259', name:'Virginia Tech',  rec:'3-0', rank:null}, home:{tid:'103', name:'Boston College', rec:'2-1', rank:null} },
-  { id:'cnu-sus',  espnId:'401908704', time:'12:00 PM', spread:null,        away:{tid:'3112',name:'Chris Newport',  rec:'2-0', rank:null}, home:{tid:'216', name:'Susquehanna',    rec:'3-0', rank:null} },
-  { id:'tex-tenn', espnId:'401856704', time:'12:00 PM', spread:'TEX -4.5',  away:{tid:'251', name:'Texas',          rec:'3-0', rank:1},    home:{tid:'2633',name:'Tennessee',      rec:'3-0', rank:14} },
-  { id:'ucla-md',  espnId:'401858462', time:'1:30 PM',  spread:'UCLA -1.5', away:{tid:'26',  name:'UCLA',           rec:'3-0', rank:null}, home:{tid:'120', name:'Maryland',       rec:'2-1', rank:null} },
-  { id:'nd-pur',   espnId:'401858467', time:'2:00 PM',  spread:'ND -27.5',  away:{tid:'87',  name:'Notre Dame',     rec:'3-0', rank:3},    home:{tid:'2509',name:'Purdue',         rec:'1-2', rank:null} },
-  { id:'ou-uga',   espnId:'401856700', time:'3:30 PM',  spread:'UGA -14',   away:{tid:'201', name:'Oklahoma',       rec:'2-1', rank:null}, home:{tid:'61',  name:'Georgia',        rec:'3-0', rank:2} },
-  { id:'iowa-mich',espnId:'401858463', time:'3:30 PM',  spread:'MICH -5.5', away:{tid:'2294',name:'Iowa',           rec:'3-0', rank:17},   home:{tid:'130', name:'Michigan',       rec:'3-0', rank:18} },
-  { id:'tcu-ucf',  espnId:'401856815', time:'3:30 PM',  spread:'TCU -3',    away:{tid:'2628',name:'TCU',            rec:'2-1', rank:null}, home:{tid:'2116',name:'UCF',            rec:'2-1', rank:null} },
-  { id:'van-aub',  espnId:'401856698', time:'4:15 PM',  spread:'AUB -9.5',  away:{tid:'238', name:'Vanderbilt',     rec:'3-0', rank:null}, home:{tid:'2',   name:'Auburn',         rec:'2-1', rank:null} },
-  { id:'jmu-odu',  espnId:'401869961', time:'6:00 PM',  spread:'JMU -6',    away:{tid:'256', name:'James Madison',  rec:'3-0', rank:null}, home:{tid:'295', name:'Old Dominion',   rec:'1-2', rank:null} },
-  { id:'okst-wvu', espnId:'401856881', time:'7:00 PM',  spread:'WVU -2.5',  away:{tid:'197', name:'Oklahoma St',    rec:'2-1', rank:null}, home:{tid:'277', name:'West Virginia',  rec:'3-0', rank:null} },
-  { id:'tam-lsu',  espnId:'401856702', time:'7:30 PM',  spread:'LSU -9.5',  away:{tid:'245', name:'Texas A&M',      rec:'2-1', rank:23},   home:{tid:'99',  name:'LSU',            rec:'2-1', rank:10} },
-  { id:'ore-usc',  espnId:'401858469', time:'7:30 PM',  spread:'ORE -3',    away:{tid:'2483',name:'Oregon',         rec:'2-1', rank:20},   home:{tid:'30',  name:'USC',            rec:'4-0', rank:12} },
-  { id:'hcu-unt',  espnId:'401862783', time:'7:30 PM',  spread:null,        away:{tid:'2277',name:'Hou Christian',  rec:'2-2', rank:null}, home:{tid:'249', name:'North Texas',    rec:'1-2', rank:null} },
-  { id:'tlsa-ark', espnId:'401856697', time:'8:00 PM',  spread:'ARK -6.5',  away:{tid:'202', name:'Tulsa',          rec:'3-0', rank:null}, home:{tid:'8',   name:'Arkansas',       rec:'1-2', rank:null} },
-];
+/* Games and entries live in pool.js (shared with board.html). */
 
 /* ===================================================== */
 const N = GAMES.length;
@@ -422,91 +408,49 @@ function showTab(which) {
 }
 if (location.hash === '#leaderboard') showTab('lb');
 
-/* ---------- LEADERBOARD ----------
-   Entries arrive by email (the BBBCODE line). Paste each one here. */
-const ENTRIES = [
-  'BBBCODE|Uncle Iroh|hcu-unt=249@15,nd-pur=87@14,vt-bc=259@13,ou-uga=61@12,tam-lsu=99@11,van-aub=2@10,tlsa-ark=8@9,jmu-odu=256@8,tcu-ucf=2628@7,tex-tenn=251@6,okst-wvu=197@5,ore-usc=30@4,iowa-mich=2294@3,ucla-md=120@2,cnu-sus=216@1',
-  'BBBCODE|Hor Hey|vt-bc=259@15,cnu-sus=216@14,nd-pur=2509@13,ucla-md=26@12,tex-tenn=251@11,ou-uga=61@10,iowa-mich=130@9,tcu-ucf=2116@8,van-aub=238@7,jmu-odu=256@6,tam-lsu=245@5,okst-wvu=277@4,ore-usc=2483@3,hcu-unt=249@2,tlsa-ark=8@1',
-  'BBBCODE|TheToddFather|nd-pur=87@15,vt-bc=259@14,tam-lsu=99@13,jmu-odu=256@12,ou-uga=61@11,ore-usc=30@10,tcu-ucf=2628@9,tlsa-ark=8@8,iowa-mich=130@7,van-aub=2@6,tex-tenn=2633@5,ucla-md=120@4,okst-wvu=277@3,hcu-unt=249@2,cnu-sus=216@1',
-  'BBBCODE|Jamison Ford|vt-bc=259@15,van-aub=2@14,nd-pur=87@13,tcu-ucf=2116@12,ou-uga=61@11,jmu-odu=256@10,ucla-md=26@9,ore-usc=30@8,hcu-unt=249@7,tex-tenn=251@6,okst-wvu=197@5,iowa-mich=2294@4,tam-lsu=99@3,cnu-sus=216@2,tlsa-ark=202@1',
-  'BBBCODE|Justin|nd-pur=87@15,hcu-unt=249@14,ou-uga=61@13,vt-bc=259@12,van-aub=2@11,jmu-odu=256@10,iowa-mich=130@9,tex-tenn=251@8,tlsa-ark=8@7,tcu-ucf=2628@6,okst-wvu=197@5,ucla-md=120@4,tam-lsu=99@3,ore-usc=30@2,cnu-sus=3112@1',
-  'BBBCODE|Todd’s submissive cub|cnu-sus=3112@15,vt-bc=259@14,tex-tenn=2633@13,ucla-md=120@12,nd-pur=87@11,ou-uga=61@10,iowa-mich=130@9,tcu-ucf=2628@8,van-aub=2@7,jmu-odu=256@6,okst-wvu=197@5,tam-lsu=245@4,ore-usc=2483@3,hcu-unt=2277@2,tlsa-ark=8@1',
-  'BBBCODE|Roman|nd-pur=87@15,okst-wvu=197@14,vt-bc=259@13,tex-tenn=2633@12,ucla-md=26@11,cnu-sus=3112@10,tam-lsu=99@9,ou-uga=61@8,iowa-mich=2294@7,tcu-ucf=2628@6,van-aub=2@5,jmu-odu=256@4,ore-usc=30@3,hcu-unt=249@2,tlsa-ark=202@1',
-  'BBBCODE|The Lord|nd-pur=87@15,jmu-odu=256@14,ou-uga=61@13,cnu-sus=3112@12,tex-tenn=251@11,ucla-md=26@10,iowa-mich=130@9,vt-bc=259@8,tcu-ucf=2116@7,van-aub=2@6,okst-wvu=277@5,tam-lsu=245@4,ore-usc=2483@3,hcu-unt=249@2,tlsa-ark=8@1',
-  'BBBCODE|Marci|nd-pur=87@15,ou-uga=61@14,tam-lsu=99@13,van-aub=2@12,tex-tenn=251@11,ore-usc=2483@10,iowa-mich=2294@9,tlsa-ark=8@8,jmu-odu=256@7,okst-wvu=277@6,vt-bc=259@5,tcu-ucf=2628@4,ucla-md=26@3,hcu-unt=249@2,cnu-sus=216@1',
-  'BBBCODE|Robert Reed|hcu-unt=249@15,nd-pur=87@14,ou-uga=61@13,ucla-md=120@12,tcu-ucf=2628@11,cnu-sus=3112@10,tex-tenn=251@9,iowa-mich=130@8,van-aub=2@7,ore-usc=2483@6,vt-bc=259@5,tlsa-ark=8@4,jmu-odu=256@3,okst-wvu=277@2,tam-lsu=245@1',
-  'BBBCODE|DiSalvo|nd-pur=87@15,ou-uga=61@14,tex-tenn=251@13,tam-lsu=99@12,jmu-odu=256@11,tlsa-ark=202@10,vt-bc=259@9,tcu-ucf=2116@8,van-aub=2@7,hcu-unt=2277@6,cnu-sus=3112@5,ucla-md=120@4,iowa-mich=130@3,okst-wvu=197@2,ore-usc=2483@1',
-  'BBBCODE|Bernie|nd-pur=87@15,ou-uga=61@14,vt-bc=259@13,tam-lsu=99@12,van-aub=2@11,tlsa-ark=8@10,iowa-mich=130@9,cnu-sus=216@8,ucla-md=120@7,tex-tenn=2633@6,okst-wvu=277@5,jmu-odu=256@4,ore-usc=2483@3,tcu-ucf=2628@2,hcu-unt=249@1',
-  'BBBCODE|Phil|nd-pur=87@15,ou-uga=61@14,vt-bc=259@13,tex-tenn=251@12,jmu-odu=256@11,tam-lsu=99@10,hcu-unt=249@9,iowa-mich=130@8,okst-wvu=277@7,van-aub=2@6,cnu-sus=216@5,tlsa-ark=202@4,tcu-ucf=2116@3,ucla-md=26@2,ore-usc=2483@1',
-  'BBBCODE|Papa Gordon|nd-pur=87@15,hcu-unt=249@14,ou-uga=61@13,vt-bc=259@12,van-aub=2@11,tam-lsu=99@10,jmu-odu=256@9,tlsa-ark=8@8,iowa-mich=130@7,tex-tenn=251@6,tcu-ucf=2628@5,okst-wvu=277@4,ore-usc=2483@3,ucla-md=26@2,cnu-sus=216@1',
-  'BBBCODE|Stinnie|nd-pur=87@15,ou-uga=61@14,tex-tenn=251@13,ucla-md=26@12,vt-bc=259@11,tcu-ucf=2628@10,iowa-mich=2294@9,van-aub=238@8,okst-wvu=277@7,tam-lsu=99@6,ore-usc=30@5,tlsa-ark=8@4,jmu-odu=256@3,hcu-unt=249@2,cnu-sus=216@1',
-];
-
-function parseEntry(code) {
-  const [, name, list] = code.split('|');
-  const picks = list.split(',').map(s => {
-    const [game, rest] = s.split('=');
-    const [team, pts] = rest.split('@');
-    return { game, team: team === '-' ? null : team, pts: +pts };
-  });
-  return { name, picks };
-}
-const LB = ENTRIES.map(parseEntry);
-let results = {}; // gameId -> { state, detail, winner, scores:{tid:score} }
-
-async function fetchResults() {
-  await Promise.all(GAMES.map(async g => {
-    try {
-      const r = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/summary?event=${g.espnId}`);
-      const c = (await r.json()).header.competitions[0];
-      const scores = {};
-      let winner = null;
-      c.competitors.forEach(x => { scores[x.id] = x.score; if (x.winner) winner = x.id; });
-      const done = c.status.type.completed;
-      if (done && !winner) { // fallback: higher score wins
-        const [a, b] = c.competitors;
-        winner = +a.score > +b.score ? a.id : b.id;
-      }
-      results[g.id] = { state: c.status.type.state, detail: c.status.type.shortDetail, winner: done ? winner : null, scores };
-    } catch (e) { /* keep last known result */ }
-  }));
-  renderLeaderboard();
-}
+/* ---------- LEADERBOARD (data + scoring in pool.js) ---------- */
+function teamName(tid, gid) { const g = byId[gid]; return tid === g.away.tid ? g.away.name : tid === g.home.tid ? g.home.name : 'no pick'; }
 
 function renderLeaderboard() {
-  const rows = LB.map(e => {
-    let pts = 0, max = 0;
-    const items = e.picks.map(p => {
-      const g = byId[p.game], res = results[p.game];
-      const team = p.team === g.away.tid ? g.away : p.team === g.home.tid ? g.home : null;
-      let cls = '', status = '';
-      if (res && res.winner) {
-        if (p.team === res.winner) { cls = 'won'; pts += p.pts; max += p.pts; } else cls = 'lost';
-      } else max += p.team ? p.pts : 0;
+  const rows = Pool.standings();
+  const G = Pool.games;
+  const html = rows.map(r => {
+    const items = r.entry.picks.map(p => {
+      const g = byId[p.game], res = G[p.game];
+      let cls = '', status = g.time;
+      if (res && res.winner) cls = p.team === res.winner ? 'won' : 'lost';
       if (res && res.state !== 'pre') status = `${g.away.name.split(' ')[0]} ${res.scores[g.away.tid] ?? ''}-${res.scores[g.home.tid] ?? ''} · ${res.detail}`;
-      else status = g.time;
-      return `<li class="${cls}"><span class="p">${p.pts}</span><span class="t">${team ? esc(team.name) : 'no pick'}</span><span class="s">${esc(status)}</span></li>`;
+      const odds = res && !res.winner ? ` · ${Math.round(Pool.pPick(p) * 100)}%` : '';
+      return `<li class="${cls}"><span class="p">${p.pts}</span><span class="t">${esc(teamName(p.team, p.game))}</span><span class="s">${esc(status + odds)}</span></li>`;
     }).join('');
-    return { name: e.name, pts, max, items };
-  }).sort((a, b) => b.pts - a.pts || b.max - a.max);
-
-  let rank = 0, prev = null;
-  const html = rows.map((r, i) => {
-    if (r.pts !== prev) { rank = i + 1; prev = r.pts; }
-    const head = `<span class="lb-rank">${rank}</span><span class="lb-name">${esc(r.name)}</span>
+    const sweat = r.sweat
+      ? `🔥 ${r.sweat.pts} pts on ${esc(teamName(r.sweat.team, r.sweat.game))} ${r.sweat.diff > 0 ? 'up ' + r.sweat.diff : r.sweat.diff < 0 ? 'down ' + (-r.sweat.diff) : 'tied'}`
+      : '';
+    const stats = `<div class="lb-stats">
+        <span title="chance to win the pot">🏆 ${fmtPct(r.winPct)}</span>
+        <span title="projected final score">📈 ${Math.round(r.proj)} proj</span>
+        <span>${r.w}-${r.l}</span>
+        ${isLocked() && (r.liveUp || r.liveDown) ? `<span>🟢${r.liveUp} 🔴${r.liveDown} live</span>` : ''}
+        ${isLocked() && sweat ? `<span class="sweat">${sweat}</span>` : ''}
+      </div>`;
+    const head = `<span class="lb-rank">${r.rank}</span><span class="lb-name">${esc(r.name)}${stats}</span>
       <span class="lb-pts"><b>${r.pts}</b><small>max ${r.max}</small></span>`;
     return isLocked()
-      ? `<details class="lb-row"><summary>${head}</summary><ul class="lb-picks">${r.items}</ul></details>`
+      ? `<details class="lb-row"><summary>${head}</summary><ul class="lb-picks">${items}</ul></details>`
       : `<div class="lb-row"><summary>${head}</summary></div>`;
   }).join('');
-  const done = Object.values(results).filter(r => r.winner).length;
+  const done = Object.values(G).filter(r => r.winner).length;
+  const t = Pool.updatedAt ? Pool.updatedAt.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : '…';
   document.getElementById('lbTable').innerHTML = html +
-    `<p class="lb-updated">${LB.length} entr${LB.length === 1 ? 'y' : 'ies'} · ${done}/${N} games final · updated ${new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})} · ${isLocked() ? 'tap a name for picks' : 'picks revealed at 1:25 PM lock'}</p>`;
+    `<p class="lb-updated">${rows.length} entries · ${done}/${N} games final · updated ${t} · ${isLocked() ? 'tap a name for picks' : 'picks revealed at 1:25 PM lock'}<br>
+     🏆 = chance to win the pot, from 4,000 simulations using live ESPN win odds · <a href="board.html" style="color:var(--cyan)">📺 big-screen board</a></p>`;
 }
+function fmtPct(x) { return x >= 99.5 ? '99%+' : x > 0 && x < 1 ? '<1%' : Math.round(x) + '%'; }
 
+async function tickLeaderboard() { await Pool.refresh(); renderLeaderboard(); }
 renderLeaderboard();
-fetchResults();
-setInterval(fetchResults, 60000);
+tickLeaderboard();
+setInterval(tickLeaderboard, 60000);
 
 /* ---------- Send picks (no shared backend, so entries get emailed to Steve) ---------- */
 const COMMISH_EMAIL = 'sgordon1024@gmail.com';

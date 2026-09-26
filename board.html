@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>PICK 'EM BOARD — Beer Beach Balls</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Monoton&family=Righteous&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📺</text></svg>">
+<style>
+  :root {
+    --pink: #ff2d95; --cyan: #00e5ff; --orange: #ff9e00; --yellow: #ffe600;
+    --green: #3ee07a; --red: #ff4d6d;
+    --deep: #0d021f; --card: rgba(255,255,255,0.06); --border: rgba(0,229,255,0.3);
+    --u: min(1vw, 1.45vh); /* scale unit: fits landscape and portrait */
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif; background: var(--deep); color: #f0eaff;
+    background-image: radial-gradient(ellipse at 20% 0%, rgba(255,45,149,0.18), transparent 55%),
+                      radial-gradient(ellipse at 90% 100%, rgba(0,229,255,0.14), transparent 55%);
+    padding: max(env(safe-area-inset-top), calc(var(--u) * 1.4)) calc(var(--u) * 1.6) calc(var(--u) * 1.4);
+    display: flex; flex-direction: column; gap: calc(var(--u) * 1.2);
+    overflow: hidden; -webkit-user-select: none; user-select: none;
+  }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  header h1 { font-family: 'Monoton', cursive; font-weight: 400; font-size: calc(var(--u) * 3.4); color: var(--pink);
+    text-shadow: 0 0 calc(var(--u) * 1.2) rgba(255,45,149,0.6); letter-spacing: 0.04em; white-space: nowrap; }
+  header .meta { text-align: right; font-size: calc(var(--u) * 1.35); opacity: 0.8; line-height: 1.35; }
+  header .clock { font-family: 'Righteous', cursive; font-size: calc(var(--u) * 2.6); color: var(--cyan); opacity: 1; }
+  .banner { font-size: calc(var(--u) * 1.3); color: var(--orange); font-weight: 800; }
+
+  main { flex: 1; min-height: 0; display: grid; grid-template-columns: 1.35fr 1fr; gap: calc(var(--u) * 1.6); }
+  section { min-height: 0; display: flex; flex-direction: column; }
+  h2 { font-family: 'Righteous', cursive; font-weight: 400; color: var(--cyan); font-size: calc(var(--u) * 1.7);
+    letter-spacing: 0.08em; margin-bottom: calc(var(--u) * 0.6); display: flex; justify-content: space-between; align-items: baseline; }
+  h2 small { font-family: 'Inter'; font-size: calc(var(--u) * 1.1); opacity: 0.6; letter-spacing: 0; font-weight: 600; }
+
+  /* Standings */
+  #standings { flex: 1; min-height: 0; display: grid; grid-auto-rows: 1fr; gap: 0.5cqh; container-type: size; }
+  #standings > * { --h: 6.1cqh; } /* one row's height */
+  .row { min-height: 0; overflow: hidden; display: grid; align-items: center; line-height: 1.15;
+    grid-template-columns: calc(var(--u) * 3.2) 1fr calc(var(--u) * 11) calc(var(--u) * 5.2) calc(var(--u) * 6.5);
+    gap: calc(var(--u) * 1); padding: 0 calc(var(--u) * 1); border-radius: calc(var(--u) * 0.8);
+    background: var(--card); border: 1px solid transparent; transition: transform 0.6s ease; }
+  .row.r1 { border-color: var(--yellow); background: rgba(255,230,0,0.08); }
+  .row.r2 { border-color: rgba(0,229,255,0.5); }
+  .rank { font-family: 'Righteous', cursive; font-size: min(calc(var(--u) * 2.2), calc(var(--h) * 0.5)); color: var(--yellow); text-align: center; }
+  .who { min-width: 0; }
+  .name { font-weight: 800; font-size: min(calc(var(--u) * 1.9), calc(var(--h) * 0.4)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sub { font-size: min(calc(var(--u) * 1.15), calc(var(--h) * 0.25)); opacity: 0.75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 0.1em; }
+  .sub .hot { color: var(--orange); opacity: 1; font-weight: 600; }
+  .odds { display: flex; flex-direction: column; gap: 0.25em; }
+  .odds .lbl { font-size: min(calc(var(--u) * 1.3), calc(var(--h) * 0.3)); font-weight: 800; }
+  .bar { height: calc(var(--u) * 0.7); border-radius: 99px; background: rgba(255,255,255,0.1); overflow: hidden; }
+  .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--pink), var(--orange)); border-radius: 99px; transition: width 0.8s ease; }
+  .proj { text-align: right; font-size: min(calc(var(--u) * 1.1), calc(var(--h) * 0.24)); opacity: 0.75; line-height: 1.2; }
+  .proj b { display: block; font-size: min(calc(var(--u) * 1.6), calc(var(--h) * 0.36)); opacity: 1; color: #fff; }
+  .pts { text-align: right; font-family: 'Righteous', cursive; font-size: min(calc(var(--u) * 3), calc(var(--h) * 0.55)); color: var(--cyan); line-height: 1; }
+  .pts small { display: block; font-family: 'Inter'; font-size: min(calc(var(--u) * 1), calc(var(--h) * 0.2)); opacity: 0.6; color: #f0eaff; }
+
+  /* Games */
+  #games { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 1fr; gap: calc(var(--u) * 0.6); }
+  .game { background: var(--card); border-radius: calc(var(--u) * 0.8); padding: calc(var(--u) * 0.6) calc(var(--u) * 0.8);
+    display: flex; flex-direction: column; justify-content: center; gap: calc(var(--u) * 0.25); min-height: 0; border: 1px solid transparent; }
+  .game.live { border-color: rgba(62,224,122,0.6); }
+  .game.final { opacity: 0.55; }
+  .team { display: grid; grid-template-columns: calc(var(--u) * 2) 1fr auto auto; align-items: center; gap: calc(var(--u) * 0.6);
+    font-size: calc(var(--u) * 1.3); font-weight: 600; }
+  .team img { width: calc(var(--u) * 2); height: calc(var(--u) * 2); object-fit: contain; }
+  .team .tn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .team .cnt { font-size: calc(var(--u) * 1); opacity: 0.6; font-weight: 600; }
+  .team .sc { font-family: 'Righteous', cursive; font-size: calc(var(--u) * 1.6); min-width: 1.4em; text-align: right; }
+  .team.won .tn, .team.won .sc { color: var(--green); }
+  .team.poss .tn::after { content: ' 🏈'; font-size: 0.8em; }
+  .gfoot { display: flex; align-items: center; gap: calc(var(--u) * 0.6); font-size: calc(var(--u) * 1); opacity: 0.8; }
+  .gfoot .st { white-space: nowrap; }
+  .game.live .gfoot .st { color: var(--green); font-weight: 800; opacity: 1; }
+  .wp { flex: 1; height: calc(var(--u) * 0.45); border-radius: 99px; background: rgba(0,229,255,0.5); overflow: hidden; }
+  .wp i { display: block; height: 100%; background: var(--pink); }
+
+  footer { font-size: calc(var(--u) * 1); opacity: 0.55; display: flex; justify-content: space-between; gap: 1rem; }
+  #wake { cursor: pointer; }
+
+  @media (orientation: portrait) {
+    :root { --u: min(1.35vw, 0.95vh); }
+    main { grid-template-columns: 1fr; grid-template-rows: 1.55fr 1fr; }
+    #games { grid-template-columns: 1fr 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>PICK 'EM</h1>
+  <div class="meta">
+    <div class="clock" id="clock">--:--</div>
+    <div id="summary">Loading…</div>
+  </div>
+</header>
+
+<main>
+  <section>
+    <h2>STANDINGS <small>🏆 = chance to win the pot · 2nd gets their $10 back</small></h2>
+    <div id="standings"></div>
+  </section>
+  <section>
+    <h2>GAMES <small>pink bar = away win odds · # = how many of us picked them</small></h2>
+    <div id="games"></div>
+  </section>
+</main>
+
+<footer>
+  <span id="lockNote"></span>
+  <span id="wake">Tap anywhere to keep the screen awake</span>
+</footer>
+
+<script src="pool.js"></script>
+<script>
+const LOCK_TIME = Date.parse('2026-09-26T17:25:00Z'); // keep in sync with pickem.html
+const locked = () => Date.now() >= LOCK_TIME;
+const byId = Pool.byId;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const logo = tid => `https://a.espncdn.com/i/teamlogos/ncaa/500/${tid}.png`;
+const pct = x => x >= 99.5 ? '99%+' : x > 0 && x < 1 ? '<1%' : Math.round(x) + '%';
+const short = (tid, gid) => { const g = byId[gid]; return tid === g.away.tid ? g.away.name : g.home.name; };
+
+function renderStandings() {
+  const rows = Pool.standings();
+  const L = locked();
+  document.getElementById('standings').innerHTML = rows.map(r => {
+    const bits = r.w + r.l ? [`${r.w}-${r.l} final`] : [];
+    if (L && (r.liveUp || r.liveDown)) bits.push(`🟢${r.liveUp} 🔴${r.liveDown} live`);
+    if (L && r.solo) bits.push(`🐺 ${r.solo} solo pick${r.solo > 1 ? 's' : ''}`);
+    let hot = '';
+    if (L && r.sweat) {
+      const d = r.sweat.diff;
+      hot = `<span class="hot">🔥 ${r.sweat.pts} on ${esc(short(r.sweat.team, r.sweat.game))} ${d > 0 ? 'up ' + d : d < 0 ? 'down ' + (-d) : 'tied'}</span>`;
+    }
+    return `<div class="row${r.pts && r.rank === 1 ? ' r1' : r.pts && r.rank === 2 ? ' r2' : ''}">
+      <div class="rank">${r.rank}</div>
+      <div class="who"><div class="name">${esc(r.name)}</div><div class="sub">${bits.join(' · ')}${bits.length && hot ? ' · ' : ''}${hot}</div></div>
+      <div class="odds"><span class="lbl">🏆 ${pct(r.winPct)}</span><div class="bar"><i style="width:${Math.max(1, r.winPct)}%"></i></div></div>
+      <div class="proj"><b>${Math.round(r.proj)}</b>proj</div>
+      <div class="pts">${r.pts}<small>max ${r.max}</small></div>
+    </div>`;
+  }).join('');
+}
+
+function renderGames() {
+  const G = Pool.games;
+  const order = { in: 0, pre: 1, post: 2 };
+  const list = GAMES.map((g, i) => ({ g, r: G[g.id], i }))
+    .sort((a, b) => (order[a.r ? a.r.state : 'pre'] - order[b.r ? b.r.state : 'pre']) || a.i - b.i);
+  const L = locked();
+  document.getElementById('games').innerHTML = list.map(({ g, r }) => {
+    const cons = Pool.consensus(g.id);
+    const state = r ? r.state : 'pre';
+    const team = t => {
+      const won = r && r.winner === t.tid ? ' won' : '';
+      const poss = r && r.poss === t.tid ? ' poss' : '';
+      const sc = r && state !== 'pre' ? (r.scores[t.tid] ?? '') : '';
+      return `<div class="team${won}${poss}"><img src="${logo(t.tid)}" alt="" onerror="this.style.visibility='hidden'">
+        <span class="tn">${t.rank ? '#' + t.rank + ' ' : ''}${esc(t.name)}</span>
+        <span class="cnt">${L ? cons[t.tid] : ''}</span><span class="sc">${sc}</span></div>`;
+    };
+    const st = state === 'pre' ? g.time : r.detail;
+    const pa = r ? r.pAway : 0.5;
+    return `<div class="game ${state === 'in' ? 'live' : state === 'post' ? 'final' : ''}">
+      ${team(g.away)}${team(g.home)}
+      <div class="gfoot"><span class="st">${esc(st)}</span>
+        ${state === 'post' ? '' : `<div class="wp"><i style="width:${Math.round(pa * 100)}%"></i></div><span>${Math.round(pa * 100)}–${Math.round((1 - pa) * 100)}</span>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderMeta() {
+  const G = Pool.games;
+  const vals = Object.values(G);
+  const live = vals.filter(r => r.state === 'in').length, fin = vals.filter(r => r.winner).length;
+  const t = Pool.updatedAt ? Pool.updatedAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '…';
+  document.getElementById('summary').textContent = `${Pool.entries.length} entries · ${live} live · ${fin}/${GAMES.length} final · updated ${t}`;
+  document.getElementById('lockNote').textContent = locked()
+    ? 'Beerbeachballs pick’em · 15 = most confident'
+    : 'Picks lock at 1:25 PM. Pick details show up here after lock.';
+}
+
+function renderAll() { renderStandings(); renderGames(); renderMeta(); }
+function tickClock() {
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
+async function tick() { await Pool.refresh(); renderAll(); }
+renderAll(); tickClock();
+tick();
+setInterval(tick, 30000);
+setInterval(tickClock, 10000);
+setInterval(() => { if (locked()) renderAll(); }, 60000); // flip to post-lock view on time
+
+// Keep the iPad screen on (needs one tap to start)
+let lock = null;
+async function keepAwake() {
+  try {
+    if ('wakeLock' in navigator) {
+      lock = await navigator.wakeLock.request('screen');
+      document.getElementById('wake').textContent = '☀️ Screen stays on';
+      lock.addEventListener('release', () => { document.getElementById('wake').textContent = 'Tap anywhere to keep the screen awake'; });
+    } else document.getElementById('wake').textContent = 'Set Auto-Lock to Never in Settings to keep this up';
+  } catch (e) { /* denied */ }
+}
+document.addEventListener('click', keepAwake);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && lock) keepAwake(); });
+</script>
+</body>
+</html>
