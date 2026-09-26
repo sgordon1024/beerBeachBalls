@@ -58,6 +58,7 @@
   .team .tn { font-family: 'Righteous', cursive; color: var(--pink); font-size: 1.1rem; margin: 0.15rem 0 0.35rem; word-break: break-word; }
   .team .ppl { font-size: 0.9rem; line-height: 1.45; }
   .team .ppl .w { color: var(--orange); font-size: 0.8rem; }
+  .team .who { background: none; border: none; padding: 0; color: inherit; font: inherit; font-size: 0.9rem; cursor: pointer; text-align: left; }
   .empty { opacity: 0.6; font-size: 0.9rem; text-align: center; padding: 1rem; }
   .games { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.6rem; }
   .game { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 0.8rem; text-align: center; font-weight: 700; }
@@ -107,9 +108,12 @@ const TOPIC = 'bbb-teams-7f3c91e2b54d';
 const BASE = 'https://ntfy.sh/' + TOPIC;
 const ME_KEY = 'bbb_teams_me';
 
-let me = null;               // { id, name, num }
+let me = null;               // { id, name, num }  (remembered on this phone when the browser allows it)
 try { me = JSON.parse(localStorage.getItem(ME_KEY)); } catch (e) {}
-const devId = (me && me.id) || (Math.random().toString(36).slice(2) + Date.now().toString(36));
+function remember() { try { localStorage.setItem(ME_KEY, JSON.stringify(me)); } catch (e) { /* private browsing: fine, it's saved on the board */ } }
+// A person's id is their name, so signing in again (new phone, private tab) updates the same entry instead of duplicating it
+const idFor = name => 'n:' + name.trim().toLowerCase().replace(/\s+/g, ' ');
+if (me && me.id && !me.id.startsWith('n:')) me.id = idFor(me.name);
 
 const seen = new Set();
 const people = {};           // id -> { name, num, time }
@@ -142,8 +146,10 @@ async function send(ev) {
 
 function teams() {
   const byNum = {};
+  const latest = {}; // collapse old device-based entries that share a name
+  Object.entries(people).forEach(([id, p]) => { if (!p.gone) { const k = idFor(p.name); if (!latest[k] || latest[k].time < p.time) latest[k] = { id, time: p.time }; } });
   Object.entries(people).forEach(([id, p]) => {
-    if (p.gone) return;
+    if (p.gone || latest[idFor(p.name)].id !== id) return;
     (byNum[p.num] = byNum[p.num] || []).push({ id, ...p });
   });
   return Object.keys(byNum).map(Number).sort((a, b) => a - b).map(n => ({
@@ -181,6 +187,7 @@ function render() {
         <div class="num"><label for="jNum">Hat #</label><input id="jNum" type="number" inputmode="numeric" min="1" max="99" placeholder="7" value="${me ? me.num : ''}"></div>
       </div>
       <button class="primary" id="joinBtn">FIND MY PARTNER</button>
+      <div class="hint" style="text-align:center">Already signed in on another phone or tab? Just tap your name under All Teams.</div>
       ${editingJoin ? '<div style="text-align:center;margin-top:0.7rem"><button class="link" id="cancelEdit">cancel</button></div>' : ''}
     </div>`;
     const btn = document.getElementById('joinBtn');
@@ -217,8 +224,14 @@ function render() {
   tEl.innerHTML = all.length ? all.map(t => `<div class="team${me && t.num === me.num ? ' mine' : ''}${t.members.length < 2 ? ' solo' : ''}">
       <div class="n">HAT #${t.num}</div>
       <div class="tn">${t.name ? esc(t.name) : '<span style="opacity:.5">no name yet</span>'}</div>
-      <div class="ppl">${t.members.map(m => esc(m.name)).join('<br>')}${t.members.length < 2 ? '<br><span class="w">waiting on partner</span>' : ''}</div>
+      <div class="ppl">${t.members.map(m => `<button class="who" data-id="${esc(m.id)}">${esc(m.name)}</button>`).join('<br>')}${t.members.length < 2 ? '<br><span class="w">waiting on partner</span>' : ''}</div>
     </div>`).join('') : `<div class="empty">No one's signed in yet. Be the first.</div>`;
+
+  tEl.querySelectorAll('.who').forEach(b => b.addEventListener('click', () => {
+    const p = people[b.dataset.id]; if (!p || p.gone) return;
+    if (me && me.id === b.dataset.id) return;
+    if (confirm(`Are you ${p.name}?`)) { me = { id: b.dataset.id, name: p.name, num: p.num }; remember(); editingJoin = false; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  }));
 
   const n = all.reduce((a, t) => a + t.members.length, 0);
   const st = document.getElementById('status');
@@ -232,10 +245,12 @@ async function join() {
   if (!name || !(num > 0)) return;
   const btn = document.getElementById('joinBtn'); btn.disabled = true; btn.textContent = 'SAVING…';
   try {
-    me = { id: devId, name, num };
-    localStorage.setItem(ME_KEY, JSON.stringify(me));
+    const oldId = me && me.id;
+    me = { id: idFor(name), name, num };
+    remember();
     editingJoin = false;
-    await send({ t: 'join', id: devId, name, num });
+    if (oldId && oldId !== me.id && people[oldId] && !people[oldId].gone) await send({ t: 'leave', id: oldId });
+    await send({ t: 'join', id: me.id, name, num });
     toast('You’re in ✔');
   } catch (e) {
     btn.disabled = false; btn.textContent = 'FIND MY PARTNER';
